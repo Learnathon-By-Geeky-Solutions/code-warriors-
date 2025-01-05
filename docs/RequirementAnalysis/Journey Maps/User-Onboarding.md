@@ -1,0 +1,1 @@
+![Onboarding New Users](./images/Journey_Map Onboarding System.jpg)
