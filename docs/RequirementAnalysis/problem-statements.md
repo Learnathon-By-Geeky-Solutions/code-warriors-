@@ -63,6 +63,7 @@ and also integrate discord communication
 - Which makes me feel frustrated and impedes my productivity.
 
 <!---
+provide secure networking solution using wireguard vpn technologies (tailscale)
 -->
 
 4. **Distractions:**
@@ -145,7 +146,9 @@ part of existing solution, integrate with existing chat and management ecosystem
 - Because remote work limits spontaneous and dynamic interactions.
 - Which impacts project outcomes and team synergy.
 
-c
+<!--
+resource sharing, project tracking, pair programming, VNC
+-->
 
 10. **Isolation and loneliness:**
 
@@ -240,6 +243,9 @@ same problem
 - Because employees might feel they need to prove they are working, which can lead to overworking.
 - Which makes me feel concerned about the potential negative impact on employee engagement and morale.
 
+<!---
+part of the existing problems
+-->
 
 18. **Mentoring and upscaling skill:**
 
@@ -249,6 +255,12 @@ same problem
 - Because remote work limits face-to-face interactions and hands-on training.
 - Which makes me feel concerned about my team's professional development.
 
+<!---
+1. communication channel engagement tracking and gamification
+2. feeling impression, stagnant, depressed, (manual status update, ask for help prompt) 
+-->
+
+
 19. **Ensuring Consistent Access To Resources:**
 
 - I am a remote worker.
@@ -256,6 +268,11 @@ same problem
 - But unequal access to resources like high-speed internet or appropriate work equipment can hinder my work.
 - Because not all remote workers have the same level of access to necessary tools.
 - Which makes me feel frustrated and affects my work output.
+
+<!---
+1. cache imporatant document summary offline
+2. effortless cross platform resource sharing
+-->
 
 20. **Mismatch of timezone for global employees:**
 
@@ -265,6 +282,10 @@ same problem
 - Because team members are spread across various time zones.
 - Which makes me feel concerned about effective collaboration and timely project completion.
 
+<!--
+
+-->
+
 21. **Team Building and Company Culture:**
 
 - I am a manager leading a remote team.
@@ -272,3 +293,7 @@ same problem
 - But remote work makes it harder to replicate the camaraderie found in an office environment.
 - Because onsite workers benefit from activities, events, games, and parties that are difficult to conduct virtually.
 - Which makes me feel challenged in maintaining team cohesion and a positive company culture.
+
+<!--
+same problem
+-->
