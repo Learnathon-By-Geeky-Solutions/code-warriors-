@@ -1,0 +1,13 @@
+/* styles.css */
+.login-pf {
+  background: none;
+  background-image: url(../img/keycloak-bg.png);
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+
+/* Ensure the form remains readable over the background */
+.login-pf-page {
+  background-color: rgba(255, 255, 255, 0.9);
+}
