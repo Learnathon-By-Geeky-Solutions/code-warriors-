@@ -37,6 +37,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8181:8181"
+    volumes:
+      - ./docker/keycloak/realms/:/opt/keycloak/data/import/
     depends_on:
       mysql:
         condition: service_healthy
