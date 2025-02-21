@@ -1,6 +1,6 @@
 package com.meta.project;
 
-import com.meta.doc.config.TestContainersConfig;
+import com.meta.project.config.TestContainersConfig;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
