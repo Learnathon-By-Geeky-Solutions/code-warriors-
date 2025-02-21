@@ -3,14 +3,19 @@ package com.map.MetaHive.controller;
 import com.map.MetaHive.model.Player;
 import com.map.MetaHive.model.Room;
 import com.map.MetaHive.service.GameSessionService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -22,20 +27,69 @@ public class PlayerController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    // For simplicity, define a default spawn inside the map
-    private static final double DEFAULT_SPAWN_X = 400;
-    private static final double DEFAULT_SPAWN_Y = 300;
+    // Path to your Tiled map JSON file (placed in src/main/resources)
+    private static final String MAP_JSON_PATH = "mapfinal1.json";
+
+    /**
+     * Reads the Tiled map JSON from the classpath and extracts spawn coordinates
+     * from the layer named "spawnpoint". If not found, returns fallback coordinates.
+     *
+     * @return a double array with [spawnX, spawnY]
+     */
+    private double[] getSpawnCoordinates() {
+        try {
+            ClassPathResource resource = new ClassPathResource(MAP_JSON_PATH);
+            InputStream is = resource.getInputStream();
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> mapData = mapper.readValue(is, new TypeReference<Map<String, Object>>() {});
+            List<Map<String, Object>> layers = (List<Map<String, Object>>) mapData.get("layers");
+            if (layers != null) {
+                for (Map<String, Object> layer : layers) {
+                    String layerName = (String) layer.get("name");
+                    if ("spawnpoint".equalsIgnoreCase(layerName)) {
+                        List<Map<String, Object>> objects = (List<Map<String, Object>>) layer.get("objects");
+                        if (objects != null && !objects.isEmpty()) {
+                            // Choose the first spawn point (or implement a random selection if needed)
+                            Map<String, Object> spawnObj = objects.get(0);
+                            double spawnX = ((Number) spawnObj.get("x")).doubleValue();
+                            double spawnY = ((Number) spawnObj.get("y")).doubleValue();
+                            return new double[]{spawnX, spawnY};
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Fallback coordinates if no spawnpoint found in the map
+        return new double[]{400, 300};
+    }
 
     @MessageMapping("/createRoom")
     public void createRoom(@Payload Map<String, Object> payload) {
         String username = (String) payload.get("username");
-        String roomId = gameSessionService.createRoom();
+        // Expect the office id (room id) to be provided in the payload
+        String roomId = (String) payload.get("roomId");
+        if (roomId == null || roomId.isEmpty()) {
+            System.out.println("Invalid roomId provided.");
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Invalid roomId");
+            messagingTemplate.convertAndSend("/queue/roomCreated", response);
+            return;
+        }
+        // Create room if it doesn't exist
+        if (!gameSessionService.roomExists(roomId)) {
+            gameSessionService.createRoom(roomId);
+        } else {
+            System.out.println("Room " + roomId + " already exists.");
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
         response.put("success", true);
 
-        System.out.println("Room created: " + roomId);
+        System.out.println("Room created/exists: " + roomId);
         messagingTemplate.convertAndSend("/queue/roomCreated", response);
     }
 
@@ -46,7 +100,7 @@ public class PlayerController {
 
         Map<String, Object> response = new HashMap<>();
 
-        // Create if doesn't exist
+        // Create room if it doesn't exist
         if (!gameSessionService.roomExists(roomId)) {
             System.out.println("Room " + roomId + " doesn't exist. Creating new one.");
             Room newRoom = new Room(roomId);
@@ -60,7 +114,6 @@ public class PlayerController {
         messagingTemplate.convertAndSend("/queue/joinResult", response);
     }
 
-    // ---------------------- REGISTER PLAYER ----------------------
     @MessageMapping("/register")
     public void registerPlayer(@Payload Player incoming) {
         if (incoming.getId() == null || incoming.getId().isEmpty()) {
@@ -72,38 +125,36 @@ public class PlayerController {
             return;
         }
 
-        // Check if player already in the room
+        // Check if player already exists in the room
         Player existing = gameSessionService.getPlayerById(incoming.getRoomId(), incoming.getId());
         if (existing != null) {
-            // Already in the room, so keep the old x,y
-            System.out.println("Player " + existing.getUsername()
-                    + " already exists at (" + existing.getX() + "," + existing.getY() + ")");
-            // Optionally update user name if needed
+            System.out.println("Player " + existing.getUsername() +
+                    " already exists at (" + existing.getX() + "," + existing.getY() + ")");
+            // Optionally update username
             existing.setUsername(incoming.getUsername());
             broadcastPlayerStates(incoming.getRoomId());
             return;
         }
 
-        // If new player, set default spawn
-        incoming.setX(DEFAULT_SPAWN_X);
-        incoming.setY(DEFAULT_SPAWN_Y);
+        // Instead of using hardcoded default spawn values,
+        // read the spawn point from the Tiled map JSON in the backend.
+        double[] spawnCoords = getSpawnCoordinates();
+        incoming.setX(spawnCoords[0]);
+        incoming.setY(spawnCoords[1]);
 
-        System.out.println("New player: " + incoming.getUsername() + " in room: "
-                + incoming.getRoomId() + " spawn @(" + DEFAULT_SPAWN_X + "," + DEFAULT_SPAWN_Y + ")");
+        System.out.println("New player: " + incoming.getUsername() + " in room: " +
+                incoming.getRoomId() + " spawn @(" + spawnCoords[0] + "," + spawnCoords[1] + ")");
 
         gameSessionService.addPlayer(incoming);
         broadcastPlayerStates(incoming.getRoomId());
     }
 
-    // ---------------------- MOVE PLAYER ----------------------
     @MessageMapping("/move")
     public void movePlayer(@Payload Player playerMovement) {
-        System.out.println("Received movement from player ID: "
-                + playerMovement.getId() + " in room: " + playerMovement.getRoomId());
+        System.out.println("Received movement from player ID: " +
+                playerMovement.getId() + " in room: " + playerMovement.getRoomId());
         Player existingPlayer = gameSessionService.getPlayerById(
-                playerMovement.getRoomId(),
-                playerMovement.getId()
-        );
+                playerMovement.getRoomId(), playerMovement.getId());
 
         if (existingPlayer != null) {
             existingPlayer.setX(playerMovement.getX());
@@ -115,12 +166,11 @@ public class PlayerController {
 
             broadcastPlayerStates(playerMovement.getRoomId());
         } else {
-            System.out.println("Player ID not found: " + playerMovement.getId()
-                    + " in room: " + playerMovement.getRoomId());
+            System.out.println("Player ID not found: " + playerMovement.getId() +
+                    " in room: " + playerMovement.getRoomId());
         }
     }
 
-    // ---------------------- LEAVE ROOM ----------------------
     @MessageMapping("/leaveRoom")
     public void leaveRoom(@Payload Map<String, String> payload) {
         String roomId = payload.get("roomId");
@@ -135,11 +185,10 @@ public class PlayerController {
         broadcastPlayerStates(roomId);
     }
 
-    // ---------------------- BROADCAST ----------------------
     private void broadcastPlayerStates(String roomId) {
         Map<String, Player> players = gameSessionService.getPlayersInRoom(roomId);
-        System.out.println("Broadcasting player states for room " + roomId
-                + ": " + players.size() + " players");
+        System.out.println("Broadcasting player states for room " + roomId +
+                ": " + players.size() + " players");
         messagingTemplate.convertAndSend("/topic/rooms/" + roomId + "/players", players);
     }
 }

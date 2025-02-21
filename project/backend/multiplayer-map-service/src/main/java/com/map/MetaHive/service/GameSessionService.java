@@ -5,37 +5,26 @@ import com.map.MetaHive.model.Room;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class GameSessionService {
 
     private final Map<String, Room> activeRooms = new ConcurrentHashMap<>();
-    private static final int ROOM_ID_LENGTH = 6;
-    private static final String ROOM_ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    public String createRoom() {
-        // Generate a short ID for the room
-        String roomId;
-        do {
-            roomId = generateRoomId();
-        } while (activeRooms.containsKey(roomId));
-
-        System.out.println("Room created with ID: " + roomId);
-        Room newRoom = new Room(roomId);
-        activeRooms.put(roomId, newRoom);
-        return roomId;
-    }
-
-    private String generateRoomId() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ROOM_ID_LENGTH; i++) {
-            int index = random.nextInt(ROOM_ID_CHARS.length());
-            sb.append(ROOM_ID_CHARS.charAt(index));
+    /**
+     * Creates a room using the provided roomId (office id) if it doesn't already exist.
+     *
+     * @param roomId The office id to be used as the room id.
+     */
+    public void createRoom(String roomId) {
+        if (!activeRooms.containsKey(roomId)) {
+            Room newRoom = new Room(roomId);
+            activeRooms.put(roomId, newRoom);
+            System.out.println("Room created with ID: " + roomId);
+        } else {
+            System.out.println("Room with ID: " + roomId + " already exists.");
         }
-        return sb.toString();
     }
 
     public boolean joinRoom(String roomId, Player player) {
