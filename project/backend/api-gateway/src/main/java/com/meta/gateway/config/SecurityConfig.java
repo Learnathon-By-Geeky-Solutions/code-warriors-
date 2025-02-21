@@ -24,8 +24,6 @@ public class SecurityConfig {
             "/office-service/v3/api-docs"
     };
 
-//    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-//    private String issuerUri;
 
     // Security Filter Chain Configuration
     @Bean
