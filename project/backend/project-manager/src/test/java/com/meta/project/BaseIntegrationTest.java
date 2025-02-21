@@ -1,4 +1,4 @@
-package com.meta.doc;
+package com.meta.project;
 
 import com.meta.doc.config.TestContainersConfig;
 import org.springframework.boot.test.context.SpringBootTest;
