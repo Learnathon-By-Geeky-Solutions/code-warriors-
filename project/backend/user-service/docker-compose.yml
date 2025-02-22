@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  user-service:
+    container_name: user-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KEYCLOAK_AUTH_SERVER_URL=http://host.docker.internal:8181
+      - KEYCLOAK_REALM=meta
+      - KEYCLOAK_RESOURCE=user-service
+      - KEYCLOAK_CREDENTIALS_SECRET=pDAsehtUBhp1miNCQ8fq40sV8fwdhSdJ
+      - KEYCLOAK_ADMIN_USERNAME=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8181/realms/meta
+    networks:
+      - user-service-network
+
+networks:
+  user-service-network:
+    driver: bridge
