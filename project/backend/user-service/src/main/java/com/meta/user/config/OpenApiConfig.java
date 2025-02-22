@@ -15,10 +15,10 @@ import java.util.Map;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI productServiceAPI() {
+    public OpenAPI userServiceAPI()  {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Order Service API")
+                        .title("User Service API")
                         .description("This is the REST API for User Service")
                         .version("v0.0.1")
                         .license(new License()
@@ -49,7 +49,9 @@ public class OpenApiConfig {
                 )
                 .extensions(Map.of(
                         "x-company-name", "MetaChain",
-                        "x-department", "Engineering"
+                        "x-department", "Engineering",
+                        "x-api-owner", "User Service Team",
+                        "x-contact-email", "userservice@metachanin.com"
                 ));
     }
 }
