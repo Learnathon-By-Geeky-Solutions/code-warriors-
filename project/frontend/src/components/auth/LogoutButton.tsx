@@ -5,8 +5,12 @@ import Cookies from "js-cookie";
 
 export const LogoutButton = () => {
   const handleLogout = useCallback(() => {
-    Cookies.remove("token");
-    keycloak.logout();
+    try {
+      Cookies.remove("token");
+      keycloak.logout();
+    } catch (error) {
+      console.error("Failed to logout", error);
+    }
   }, []);
 
   return (
