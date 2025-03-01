@@ -22,6 +22,17 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/services/WebSocketService.js",
+    "src/components/AgoraCall.js",
+    "src/components/Chatbox.js",
+    "src/components/GameCanvas.js",
+    "src/components/VideoCall.js",
+    "src/components/BanglishSpeechToText.jsx"
+  ],
   "exclude": ["node_modules"]
 }

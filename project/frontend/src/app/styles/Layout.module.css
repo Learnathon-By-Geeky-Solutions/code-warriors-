@@ -1,0 +1,24 @@
+.container {
+  /* display: flex; */
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main {
+  container-type: inline-size;
+  container-name: main;
+  flex: 1;
+}
+
+@container main (min-width: 640px) {
+  .main {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
