@@ -2,8 +2,11 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import styles from "./styles/Layout.module.css";
+import Header from "@/components/basic/header";
+import Footer from "@/components/basic/footer";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,11 +24,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <div className={styles.pageContainer}>
-            <main className={`${styles.main} container mx-auto px-4 py-8`}>
-              {children}
-            </main>
-          </div>
+          <AuthProvider>
+            <div className={styles.pageContainer}>
+              <Header />
+              <main className={`${styles.main} container mx-auto px-4 py-8`}>
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
         <Toaster />
       </body>
