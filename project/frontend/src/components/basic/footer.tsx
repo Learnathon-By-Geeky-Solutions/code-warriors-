@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { colors } from "@/components/theme/colors";
-import styles from "./Footer.module.css";
+import styles from "./styles/Footer.module.css";
 
 export default function Footer() {
   const { theme } = useTheme();
