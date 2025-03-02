@@ -16,11 +16,14 @@ export default function Header() {
   const { isAuthenticated, user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -110,10 +113,7 @@ export default function Header() {
                     <Link href="/profile" className={styles.dropdownItem}>
                       Profile
                     </Link>
-                    <LogoutButton
-                      className={styles.dropdownItem}
-                      role="button"
-                    />
+                    <LogoutButton />
                   </motion.div>
                 )}
               </AnimatePresence>

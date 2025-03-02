@@ -3,6 +3,8 @@ import { useCallback } from "react";
 import { keycloak } from "@/services/auth/keycloak";
 import Cookies from "js-cookie";
 
+
+
 export const LogoutButton = () => {
   const handleLogout = useCallback(() => {
     try {
