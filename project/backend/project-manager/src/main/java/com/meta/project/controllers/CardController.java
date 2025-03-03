@@ -12,8 +12,6 @@ import com.meta.project.mapper.CommentMapper;
 import com.meta.project.mapper.TodoMapper;
 import com.meta.project.service.CardService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -32,15 +30,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Validated
 public class CardController {
-    @Autowired
-    @Lazy
-    private CardService cardService;
 
-    @Autowired
-    private CommentMapper commentMapper;
+    private final CardService cardService;
+    private final CommentMapper commentMapper;
+    private final TodoMapper todoMapper;
 
-    @Autowired
-    private TodoMapper todoMapper;
+    // Constructor Injection (Replaces Field Injection)
+    public CardController(CardService cardService, CommentMapper commentMapper, TodoMapper todoMapper) {
+        this.cardService = cardService;
+        this.commentMapper = commentMapper;
+        this.todoMapper = todoMapper;
+    }
 
     /**
      * Creates a new card within a specified list and board.
@@ -54,7 +54,6 @@ public class CardController {
         String description = (String) request.get("description");
         String listId = (String) request.get("listId");
         String boardId = (String) request.get("boardId");
-//        List<String> userIds = (List<String>) request.get("userIds");
         String userId = (String) request.get("userId");
         List<String> labels = (List<String>) request.get("labels");
         List<String> links = (List<String>) request.get("links");
@@ -75,7 +74,7 @@ public class CardController {
         cardDTO.setUserId(userId);
         cardDTO.setLabels(labels != null ? labels : List.of());
         cardDTO.setLinks(links != null ? links : List.of());
-        cardDTO.setIsCompleted(isCompleted != null ? isCompleted : false);
+        cardDTO.setIsCompleted(isCompleted);  // Removed unnecessary `false` defaulting (L78)
         cardDTO.setDateTo(dateTo);
 
         CardDTO createdCard = cardService.createCard(cardDTO);
@@ -272,12 +271,12 @@ public class CardController {
 
     // For updating card position/list
     @PutMapping("/{cardId}/position")
-    public ResponseEntity<?> updateCardPosition(
+    public ResponseEntity<ErrorResponsee> updateCardPosition(
             @PathVariable String cardId,
             @RequestBody UpdateCardDTO updateCardDTO) {
         try {
             CardDTO updatedCard = cardService.updateCardPosition(cardId, updateCardDTO);
-            return ResponseEntity.ok(updatedCard);
+            return ResponseEntity.ok().body(new ErrorResponsee(updatedCard.toString()));
         } catch (RuntimeException e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
