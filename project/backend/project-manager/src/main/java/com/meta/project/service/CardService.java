@@ -14,14 +14,12 @@ import com.meta.project.repository.BoardListRepository;
 import com.meta.project.repository.BoardRepository;
 import com.meta.project.repository.CardRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,17 +28,24 @@ import java.util.stream.Collectors;
 @Transactional
 public class CardService {
 
-    @Autowired
-    private CardRepository cardRepository;
+    // Define a constant for the repeated literal
+    private static final String CARD_NOT_FOUND_MESSAGE = "Card not found with ID: ";
 
-    @Autowired
-    private BoardRepository boardRepository;
+    private final CardRepository cardRepository;
+    private final BoardRepository boardRepository;
+    private final BoardListRepository boardListRepository;
+    private final CardMapper cardMapper;
 
-    @Autowired
-    private BoardListRepository boardListRepository;
-
-    @Autowired
-    private CardMapper cardMapper;
+    // Use constructor injection instead of field injection
+    public CardService(CardRepository cardRepository,
+                       BoardRepository boardRepository,
+                       BoardListRepository boardListRepository,
+                       CardMapper cardMapper) {
+        this.cardRepository = cardRepository;
+        this.boardRepository = boardRepository;
+        this.boardListRepository = boardListRepository;
+        this.cardMapper = cardMapper;
+    }
 
     /**
      * Creates a new card.
@@ -98,11 +103,12 @@ public class CardService {
             throw new ServiceException("Error creating card", e);
         }
     }
+
     @Transactional
     public CardDTO updateCardTrackedTimes(String cardId, Set<String> trackedTimes) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             card.setTrackedTimes(trackedTimes != null ? new HashSet<>(trackedTimes) : new HashSet<>());
             Card updatedCard = cardRepository.save(card);
@@ -117,7 +123,7 @@ public class CardService {
     public CardDTO removeCardLinks(String cardId, Set<String> linksToRemove) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             if (linksToRemove != null) {
                 card.getLinks().removeAll(linksToRemove);
@@ -139,7 +145,7 @@ public class CardService {
     public CardDTO getCardById(String id) {
         return cardRepository.findById(id)
                 .map(cardMapper::toDTO)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + id));
     }
 
     /**
@@ -151,7 +157,7 @@ public class CardService {
     public CardDTO updateCard(CardDTO cardDTO) {
         try {
             Card existingCard = cardRepository.findById(cardDTO.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardDTO.getId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardDTO.getId()));
 
             // Update fields
             existingCard.setTitle(cardDTO.getTitle());
@@ -190,8 +196,8 @@ public class CardService {
             Set<String> updatedTrackedTimes = cardDTO.getTrackedTimes() != null ? new HashSet<>(cardDTO.getTrackedTimes()) : new HashSet<>();
             existingCard.setTrackedTimes(updatedTrackedTimes);
 
-            // Update other fields
-            existingCard.setIsCompleted(cardDTO.getIsCompleted() != null ? cardDTO.getIsCompleted() : false);
+            // Update other fields - removed unnecessary boolean literal
+            existingCard.setIsCompleted(cardDTO.getIsCompleted() != null && cardDTO.getIsCompleted());
             existingCard.setDateTo(cardDTO.getDateTo());
 
             // Note: updatedAt is managed by JPA lifecycle callbacks
@@ -214,7 +220,7 @@ public class CardService {
     public void deleteCard(String cardId) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             // Remove from Board and BoardList if bidirectional relationships are maintained
             Board board = card.getBoard();
@@ -256,7 +262,7 @@ public class CardService {
     public CardDTO copyCard(String cardId) {
         try {
             Card originalCard = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Original card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             // Determine the new order within the same board list
             Integer maxOrder = cardRepository.findMaxOrderByListId(originalCard.getBoardList().getId()).orElse(0);
@@ -305,7 +311,7 @@ public class CardService {
     public CardDTO updateCardLabels(String cardId, Set<String> labels) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             card.setLabels(labels != null ? new HashSet<>(labels) : new HashSet<>());
             // Note: updatedAt is managed by JPA lifecycle callbacks
@@ -328,9 +334,10 @@ public class CardService {
     public CardDTO updateCardIsCompleted(String cardId, Boolean isCompleted) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
-            card.setIsCompleted(isCompleted != null ? isCompleted : false);
+            // Removed unnecessary boolean literal
+            card.setIsCompleted(isCompleted != null && isCompleted);
             // Note: updatedAt is managed by JPA lifecycle callbacks
 
             Card updatedCard = cardRepository.save(card);
@@ -351,7 +358,7 @@ public class CardService {
     public CardDTO updateCardComments(String cardId, List<Comment> comments) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             // Clear existing comments if needed
             card.getComments().clear();
@@ -383,7 +390,7 @@ public class CardService {
     public CardDTO updateCardTodos(String cardId, List<Todo> todos) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             // Clear existing todos if needed
             card.getTodos().clear();
@@ -415,7 +422,7 @@ public class CardService {
     public CardDTO updateCardLinks(String cardId, Set<String> links) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             card.setLinks(links != null ? new HashSet<>(links) : new HashSet<>());
             // Note: updatedAt is managed by JPA lifecycle callbacks
@@ -438,7 +445,7 @@ public class CardService {
     public CardDTO updateCardDate(String cardId, LocalDateTime dateTo) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             card.setDateTo(dateTo);
             // Note: updatedAt is managed by JPA lifecycle callbacks
@@ -461,7 +468,7 @@ public class CardService {
     @Transactional
     public CardDTO addCardComment(String cardId, Comment comment) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
         comment.setCard(card);
         card.getComments().add(comment);
@@ -471,12 +478,19 @@ public class CardService {
         return cardMapper.toDTO(updatedCard);
     }
 
-
+    /**
+     * Updates the labels of a card.
+     *
+     * @param cardId The ID of the card.
+     * @param labels The new list of labels.
+     * @return The updated CardDTO.
+     */
     public CardDTO updateCardLabel(String cardId, List<String> labels) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
-        card.setLabels((Set<String>) labels);
+        // Fixed type casting issue
+        card.setLabels(new HashSet<>(labels));
         card.setUpdatedAt(LocalDateTime.now());
 
         return cardMapper.toDTO(cardRepository.save(card));
@@ -492,7 +506,7 @@ public class CardService {
     public CardDTO removeCardComment(String cardId, String commentId) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             boolean removed = card.getComments().removeIf(comment -> comment.getId().equals(commentId));
 
@@ -520,7 +534,7 @@ public class CardService {
     public CardDTO addCardTodo(String cardId, Todo todo) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             todo.setCard(card);
             card.getTodos().add(todo);
@@ -534,11 +548,17 @@ public class CardService {
         }
     }
 
-
+    /**
+     * Removes a todo from a card.
+     *
+     * @param cardId The ID of the card.
+     * @param todoId The ID of the todo to remove.
+     * @return The updated CardDTO.
+     */
     public CardDTO removeCardTodo(String cardId, String todoId) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                    .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
             boolean removed = card.getTodos().removeIf(todo -> todo.getId().equals(todoId));
 
@@ -565,7 +585,7 @@ public class CardService {
         try {
             for (CardDTO dto : cards) {
                 Card existingCard = cardRepository.findById(dto.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + dto.getId()));
+                        .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + dto.getId()));
 
                 // Ensure the card is being reordered within the correct BoardList
                 if (!existingCard.getBoardList().getId().equals(dto.getListId())) {
@@ -586,7 +606,6 @@ public class CardService {
         }
     }
 
-
     /**
      * Retrieves all cards within a specific board.
      *
@@ -599,10 +618,11 @@ public class CardService {
                 .map(cardMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public CardDTO addCardMembers(String cardId, List<String> userIds) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
         // Add userIds to the members set
         if (userIds != null) {
@@ -616,7 +636,7 @@ public class CardService {
     @Transactional
     public CardDTO removeCardMembers(String cardId, List<String> userIds) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with ID: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
         // Remove userIds from the members set
         if (userIds != null) {
@@ -626,7 +646,6 @@ public class CardService {
         Card updatedCard = cardRepository.save(card);
         return cardMapper.toDTO(updatedCard);
     }
-
 
     /**
      * Retrieves a specific board list by its ID.
@@ -639,16 +658,22 @@ public class CardService {
                 .orElseThrow(() -> new ResourceNotFoundException("BoardList not found with ID: " + listId));
     }
 
-
-
+    /**
+     * Updates a card's position to a new list and order.
+     *
+     * @param cardId The ID of the card to update.
+     * @param updateCardDTO The DTO containing the new list ID and order.
+     * @return The updated CardDTO.
+     * @throws CardPositionException If there's an error updating the card position.
+     */
     @Transactional
     public CardDTO updateCardPosition(String cardId, UpdateCardDTO updateCardDTO) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Card not found with id: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException(CARD_NOT_FOUND_MESSAGE + cardId));
 
         try {
             BoardList newList = boardListRepository.findById(updateCardDTO.getListId())
-                    .orElseThrow(() -> new RuntimeException("List not found with id: " + updateCardDTO.getListId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("List not found with id: " + updateCardDTO.getListId()));
 
             // Update the card's position
             card.setBoardList(newList);
@@ -665,21 +690,21 @@ public class CardService {
             }
 
             Card updatedCard = cardRepository.save(card);
-            return convertToDTO(updatedCard);
+            return cardMapper.toDTO(updatedCard);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Error updating card position: " + e.getMessage());
+            log.error("Error updating card position: ", e);
+            throw new CardPositionException("Error updating card position: " + e.getMessage(), e);
         }
     }
 
-
-    private CardDTO convertToDTO(Card card) {
-        CardDTO dto = new CardDTO();
-        dto.setId(card.getId());
-        dto.setTitle(card.getTitle());
-        dto.setDescription(card.getDescription());
-        dto.setListId(card.getBoardList().getId());
-        dto.setBoardId(card.getBoard().getId());
-        dto.setOrder(card.getOrder());
-        return dto;
+    /**
+     * Custom exception for card position update errors.
+     */
+    public static class CardPositionException extends ServiceException {
+        public CardPositionException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

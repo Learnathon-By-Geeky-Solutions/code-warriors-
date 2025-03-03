@@ -2,10 +2,10 @@ package com.meta.project.service;
 
 import com.meta.project.dto.BoardDTO;
 import com.meta.project.entity.Board;
+import com.meta.project.exception.BoardNotFoundException;
 import com.meta.project.mapper.BoardMapper;
 import com.meta.project.repository.BoardListRepository;
 import com.meta.project.repository.BoardRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,33 +15,29 @@ import java.util.stream.Collectors;
 @Service
 public class BoardService {
 
-    @Autowired
-    private BoardRepository boardRepository;
+    private final BoardRepository boardRepository;
+    private final BoardMapper boardMapper;
+    private final BoardListRepository boardListRepository;
 
-    @Autowired
-    private BoardMapper boardMapper;
-
-    @Autowired
-    private BoardListRepository boardListRepository;
+    public BoardService(BoardRepository boardRepository, BoardMapper boardMapper, BoardListRepository boardListRepository) {
+        this.boardRepository = boardRepository;
+        this.boardMapper = boardMapper;
+        this.boardListRepository = boardListRepository;
+    }
 
     // Get all boards
-
     public List<BoardDTO> getAllBoards() {
         return boardRepository.findAll().stream()
                 .map(boardMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    // get boards by team id
-
+    // Get boards by team ID
     public List<BoardDTO> getBoardsByTeamId(String teamId) {
         return boardRepository.getBoardsByTeamId(teamId).stream()
                 .map(boardMapper::toDTO)
                 .collect(Collectors.toList());
     }
-
-
-
 
     /**
      * Creates a new board.
@@ -72,11 +68,8 @@ public class BoardService {
      */
     public void deleteBoard(String id) {
         if (!boardRepository.existsById(id)) {
-            throw new RuntimeException("Board not found with ID: " + id);
+            throw new BoardNotFoundException("Board not found with ID: " + id);
         }
         boardRepository.deleteById(id);
     }
-
-
-
-}
+}   
