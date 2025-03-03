@@ -19,37 +19,62 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String uploadResource(String path, MultipartFile file) throws IOException {
+        // Safely extract file extension
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
 
-        // File name
-        String name = file.getOriginalFilename();
-        // abc.png
+        if (originalFilename != null && !originalFilename.isEmpty()) {
+            int lastDotIndex = originalFilename.lastIndexOf(".");
+            if (lastDotIndex > 0) {
+                fileExtension = originalFilename.substring(lastDotIndex);
+                // Validate extension - only allow specific extensions if needed
+                if (!isValidExtension(fileExtension)) {
+                    fileExtension = ".bin"; // Default to a safe extension
+                }
+            }
+        }
 
-        // random name generate file
+        // Generate random name for file
         String randomID = UUID.randomUUID().toString();
-        String fileName1 = randomID.concat(name.substring(name.lastIndexOf(".")));
+        String safeFileName = randomID + fileExtension;
 
         // Full path
-        String filePath = path + File.separator + fileName1;
+        String filePath = path + File.separator + safeFileName;
 
-        // create folder if not created
+        // Create folder if not created
         File f = new File(path);
         if (!f.exists()) {
             f.mkdir();
         }
 
-        // file copy
-
+        // File copy
         Files.copy(file.getInputStream(), Paths.get(filePath));
 
-        return fileName1;
+        return safeFileName;
+    }
+
+    // Helper method to validate file extensions
+    private boolean isValidExtension(String extension) {
+        // Add your allowed extensions here
+        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx", ".txt"};
+        for (String ext : allowedExtensions) {
+            if (ext.equalsIgnoreCase(extension)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public InputStream getResource(String path, String fileName) throws FileNotFoundException {
+        // Validate fileName to prevent path traversal attacks
+        if (fileName == null || fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid file name");
+        }
+
         String fullPath = path + File.separator + fileName;
         InputStream is = new FileInputStream(fullPath);
-        // db logic to return inpustream
+        // db logic to return inputstream
         return is;
     }
-
 }
