@@ -16,7 +16,7 @@ public class Player {
         // no-args constructor
     }
 
-    // Getters / Setters
+    // Getters and Setters
 
     public String getId() {
         return id;
