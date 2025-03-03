@@ -1,4 +1,4 @@
-package com.map.MetaHive.model;
+package com.map.metahive.model;
 
 public class Player {
     private String id;
@@ -16,7 +16,7 @@ public class Player {
         // no-args constructor
     }
 
-    // Getters / Setters
+    // Getters and Setters
 
     public String getId() {
         return id;

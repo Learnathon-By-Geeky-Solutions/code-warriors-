@@ -1,7 +1,9 @@
-package com.map.MetaHive.service;
+package com.map.metahive.service;
 
-import com.map.MetaHive.model.Player;
-import com.map.MetaHive.model.Room;
+import com.map.metahive.model.Player;
+import com.map.metahive.model.Room;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -10,33 +12,33 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class GameSessionService {
 
+    private static final Logger logger = LoggerFactory.getLogger(GameSessionService.class);
     private final Map<String, Room> activeRooms = new ConcurrentHashMap<>();
 
     /**
      * Creates a room using the provided roomId if it doesn't already exist.
      *
-     * @param roomId The office id to be used as the room id.
+     * @param roomId The room id.
      */
     public void createRoom(String roomId) {
         if (roomId == null || roomId.isEmpty()) {
             throw new IllegalArgumentException("Room ID cannot be null or empty");
         }
         activeRooms.putIfAbsent(roomId, new Room(roomId));
-        System.out.println("Room created (or already exists) with ID: " + roomId);
+        logger.info("Room created or already exists.");
     }
 
     public boolean joinRoom(String roomId, Player player) {
         if (roomId == null || player == null || player.getId() == null) {
             throw new IllegalArgumentException("Room ID, Player, or Player ID cannot be null");
         }
-
         Room room = activeRooms.get(roomId);
         if (room != null) {
             room.addPlayer(player);
-            System.out.println("Player " + player.getUsername() + " joined room " + roomId);
+            logger.info("Player joined the room.");
             return true;
         }
-        System.out.println("Failed to join room: " + roomId + " (Room does not exist)");
+        logger.warn("Attempt to join a non-existent room.");
         return false;
     }
 
@@ -45,22 +47,20 @@ public class GameSessionService {
             throw new IllegalArgumentException("Room ID or Room object cannot be null");
         }
         activeRooms.put(roomId, room);
-        System.out.println("Added new room with ID: " + roomId);
+        logger.info("New room added.");
     }
 
     public void addPlayer(Player player) {
         if (player == null || player.getId() == null || player.getRoomId() == null) {
             throw new IllegalArgumentException("Player, Player ID, or Room ID cannot be null");
         }
-
         Room room = activeRooms.get(player.getRoomId());
         if (room == null) {
             throw new IllegalStateException("Room does not exist: " + player.getRoomId());
         }
-
-        System.out.println("Adding player to room " + player.getRoomId() + ": " + player.getUsername());
+        logger.info("Adding player to room.");
         room.addPlayer(player);
-        System.out.println("Players now in room: " + room.getPlayers().size());
+        logger.info("Player added; current room player count updated.");
     }
 
     public Map<String, Player> getPlayersInRoom(String roomId) {
@@ -69,8 +69,7 @@ public class GameSessionService {
         }
         Room room = activeRooms.get(roomId);
         if (room != null) {
-            System.out.println("Retrieving players for room " + roomId
-                    + ": " + room.getPlayers().size() + " total");
+            logger.info("Retrieving players from room.");
             return room.getPlayers();
         }
         return new ConcurrentHashMap<>();
@@ -81,29 +80,23 @@ public class GameSessionService {
             throw new IllegalArgumentException("Room ID or Player ID cannot be null");
         }
         Room room = activeRooms.get(roomId);
-        if (room != null) {
-            return room.getPlayers().get(playerId);
-        }
-        return null;
+        return (room != null) ? room.getPlayers().get(playerId) : null;
     }
 
     public void removePlayer(String roomId, String playerId) {
         if (roomId == null || playerId == null) {
             throw new IllegalArgumentException("Room ID or Player ID cannot be null");
         }
-
         Room room = activeRooms.get(roomId);
         if (room == null) {
-            System.out.println("Room does not exist: " + roomId);
+            logger.warn("Attempt to remove a player from a non-existent room.");
             return;
         }
-
         room.removePlayer(playerId);
-        System.out.println("Removed player " + playerId + " from room " + roomId);
-
+        logger.info("Player removed from room.");
         if (room.getPlayers().isEmpty()) {
             activeRooms.remove(roomId);
-            System.out.println("Room removed due to no players: " + roomId);
+            logger.info("Room removed due to being empty.");
         }
     }
 
