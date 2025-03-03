@@ -19,9 +19,12 @@ import java.util.Map;
 @Slf4j
 @Validated
 public class BoardListController {
-    @Autowired
+
     private BoardListService boardListService;
 
+    public BoardListController(BoardListService boardListService) {
+        this.boardListService = boardListService;
+    }
     /**
      * Creates a new list within a specified board.
      *

@@ -18,8 +18,12 @@ import java.util.Optional;
 @Validated
 public class BoardController {
 
-    @Autowired
+
     private BoardService boardService;
+    // Constructor Injection (Replaces Field Injection)
+    public BoardController(BoardService boardService) {
+        this.boardService = boardService;
+    }
 
 
     // Get all boards
@@ -69,16 +73,15 @@ public class BoardController {
      * @return A ResponseEntity containing the BoardDTO if found.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBoardById(@PathVariable String id) {
+    public ResponseEntity<BoardDTO> getBoardById(@PathVariable String id) {
         try {
             return boardService.getBoardById(id)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving board: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
