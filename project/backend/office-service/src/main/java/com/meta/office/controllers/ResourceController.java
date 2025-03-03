@@ -31,21 +31,77 @@ public class ResourceController {
     @GetMapping
     public String test() {
         return jwtUtil.getUserIdFromToken();
-
     }
 
     @PostMapping("/postResource")
     public String postResource(@RequestParam("resource") MultipartFile image) throws IOException {
-        return this.fileService.uploadResource(path, image);
+        // Validate file content type before processing
+        validateFileType(image);
+
+        // Sanitize the path before passing to service
+        String sanitizedPath = sanitizePath(path);
+
+        // Now call the service method with validated inputs
+        String result = this.fileService.uploadResource(sanitizedPath, image);
+
+        // Sanitize the result before returning it
+        return sanitizeFilename(result);
     }
 
-    @GetMapping(value = "/resource/{resourceName}",produces = MediaType.IMAGE_JPEG_VALUE)
-    public void downloadResource( @PathVariable("resourceName") String imageName, HttpServletResponse response) throws IOException {
+    @GetMapping(value = "/resource/{resourceName}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public void downloadResource(@PathVariable("resourceName") String imageName, HttpServletResponse response) throws IOException {
+        // Sanitize the filename before processing
+        String sanitizedImageName = sanitizeFilename(imageName);
+        String sanitizedPath = sanitizePath(path);
 
-        InputStream resource = this.fileService.getResource(path, imageName);
+        InputStream resource = this.fileService.getResource(sanitizedPath, sanitizedImageName);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-        StreamUtils.copy(resource,response.getOutputStream())   ;
-
+        StreamUtils.copy(resource, response.getOutputStream());
     }
 
+    // Helper method to validate file type
+    private void validateFileType(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+    }
+
+    // Helper method to sanitize filenames
+    private String sanitizeFilename(String filename) {
+        if (filename == null) {
+            return null;
+        }
+
+        // Remove any path traversal characters
+        String sanitized = filename.replaceAll("[.]{2,}|[/\\\\]", "");
+
+        // Ensure it's just a simple filename without paths
+        int lastSeparatorIndex = Math.max(
+                sanitized.lastIndexOf('/'),
+                sanitized.lastIndexOf('\\')
+        );
+
+        if (lastSeparatorIndex >= 0) {
+            sanitized = sanitized.substring(lastSeparatorIndex + 1);
+        }
+
+        return sanitized;
+    }
+
+    // Helper method to sanitize paths
+    private String sanitizePath(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("Path cannot be null");
+        }
+
+        // Normalize the path to prevent path traversal
+        String sanitized = path.replaceAll("[.]{2,}", "");
+
+        return sanitized;
+    }
 }
