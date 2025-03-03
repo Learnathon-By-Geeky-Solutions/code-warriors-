@@ -1,12 +1,12 @@
-package com.map.MetaHive.controller;
+package com.map.metahive.controller;
 
-import com.map.MetaHive.dto.CreateRoomRequest;
-import com.map.MetaHive.dto.JoinRoomRequest;
-import com.map.MetaHive.dto.LeaveRoomRequest;
-import com.map.MetaHive.model.Player;
-import com.map.MetaHive.model.Room;
-import com.map.MetaHive.service.GameSessionService;
-import com.map.MetaHive.service.SpawnPointService;
+import com.map.metahive.dto.CreateRoomRequest;
+import com.map.metahive.dto.JoinRoomRequest;
+import com.map.metahive.dto.LeaveRoomRequest;
+import com.map.metahive.model.Player;
+import com.map.metahive.model.Room;
+import com.map.metahive.service.GameSessionService;
+import com.map.metahive.service.SpawnPointService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class PlayerController {
         String roomId = request.getRoomId();
 
         if (roomId == null || roomId.isEmpty()) {
-            logger.warn("Invalid roomId provided by user: {}", username);
+            logger.warn("Room creation attempt with invalid roomId.");
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Invalid roomId");
@@ -53,9 +53,9 @@ public class PlayerController {
         // Create room if it doesn't exist
         if (!gameSessionService.roomExists(roomId)) {
             gameSessionService.createRoom(roomId);
-            logger.info("Room created: {}", roomId);
+            logger.info("Room created successfully.");
         } else {
-            logger.info("Room {} already exists.", roomId);
+            logger.info("Room already exists; no action taken.");
         }
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
@@ -70,7 +70,7 @@ public class PlayerController {
 
         // If room does not exist, create one
         if (!gameSessionService.roomExists(roomId)) {
-            logger.info("Room {} doesn't exist. Creating new one.", roomId);
+            logger.info("Room not found; creating a new room.");
             Room newRoom = new Room(roomId);
             gameSessionService.addRoom(roomId, newRoom);
         }
@@ -78,25 +78,24 @@ public class PlayerController {
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
         response.put("success", true);
-        logger.info("Player {} joining room: {}", username, roomId);
+        logger.info("User joining room."); // Generic log; avoid showing username or roomId
         messagingTemplate.convertAndSend("/queue/joinResult", response);
     }
 
     @MessageMapping("/register")
     public void registerPlayer(@Payload Player incoming) {
         if (incoming.getId() == null || incoming.getId().isEmpty()) {
-            logger.warn("Invalid player ID received.");
+            logger.warn("Player registration attempt with invalid ID.");
             return;
         }
         if (!gameSessionService.roomExists(incoming.getRoomId())) {
-            logger.warn("Room does not exist: {}", incoming.getRoomId());
+            logger.warn("Player registration attempted for non-existent room.");
             return;
         }
         // Check if player already exists in the room
         Player existing = gameSessionService.getPlayerById(incoming.getRoomId(), incoming.getId());
         if (existing != null) {
-            logger.info("Player {} already exists at ({}, {})", existing.getUsername(), existing.getX(), existing.getY());
-            // Optionally update username
+            logger.info("Player already exists; updating username if needed.");
             existing.setUsername(incoming.getUsername());
             broadcastPlayerStates(incoming.getRoomId());
             return;
@@ -105,15 +104,14 @@ public class PlayerController {
         double[] spawnCoords = spawnPointService.getSpawnCoordinates();
         incoming.setX(spawnCoords[0]);
         incoming.setY(spawnCoords[1]);
-        logger.info("New player: {} in room: {} spawned at ({}, {})",
-                incoming.getUsername(), incoming.getRoomId(), spawnCoords[0], spawnCoords[1]);
+        logger.info("New player registered in room; spawn coordinates set.");
         gameSessionService.addPlayer(incoming);
         broadcastPlayerStates(incoming.getRoomId());
     }
 
     @MessageMapping("/move")
     public void movePlayer(@Payload Player playerMovement) {
-        logger.info("Received movement from player ID: {} in room: {}", playerMovement.getId(), playerMovement.getRoomId());
+        logger.info("Processing movement for a player.");
         Player existingPlayer = gameSessionService.getPlayerById(playerMovement.getRoomId(), playerMovement.getId());
         if (existingPlayer != null) {
             existingPlayer.setX(playerMovement.getX());
@@ -124,7 +122,7 @@ public class PlayerController {
             existingPlayer.setTimestamp(playerMovement.getTimestamp());
             broadcastPlayerStates(playerMovement.getRoomId());
         } else {
-            logger.warn("Player ID not found: {} in room: {}", playerMovement.getId(), playerMovement.getRoomId());
+            logger.warn("Player movement received for non-existent player.");
         }
     }
 
@@ -133,17 +131,17 @@ public class PlayerController {
         String roomId = request.getRoomId();
         String playerId = request.getPlayerId();
         if (roomId == null || playerId == null) {
-            logger.warn("Invalid leaveRoom payload.");
+            logger.warn("Invalid leaveRoom payload received.");
             return;
         }
-        logger.info("Removing player {} from room {}", playerId, roomId);
+        logger.info("Processing request to remove a player from a room.");
         gameSessionService.removePlayer(roomId, playerId);
         broadcastPlayerStates(roomId);
     }
 
     private void broadcastPlayerStates(String roomId) {
         Map<String, Player> players = gameSessionService.getPlayersInRoom(roomId);
-        logger.info("Broadcasting player states for room {}: {} players", roomId, players.size());
+        logger.info("Broadcasting updated player state for room.");
         messagingTemplate.convertAndSend("/topic/rooms/" + roomId + "/players", players);
     }
 }

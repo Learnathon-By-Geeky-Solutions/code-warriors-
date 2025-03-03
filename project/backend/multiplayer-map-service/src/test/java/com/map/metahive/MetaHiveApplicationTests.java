@@ -1,4 +1,4 @@
-package com.map.MetaHive;
+package com.map.metahive;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

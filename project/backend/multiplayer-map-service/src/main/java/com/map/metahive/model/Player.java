@@ -1,4 +1,4 @@
-package com.map.MetaHive.model;
+package com.map.metahive.model;
 
 public class Player {
     private String id;
