@@ -10,7 +10,6 @@ import com.meta.project.repository.BoardListRepository;
 import com.meta.project.repository.BoardRepository;
 import com.meta.project.repository.CardRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,45 +19,32 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BoardListService {
 
-    @Autowired
-    private BoardListRepository boardListRepository;
+    private static final String LIST_NOT_FOUND = "List not found with ID: ";
 
-    @Autowired
-    private BoardRepository boardRepository;
+    private final BoardListRepository boardListRepository;
+    private final BoardRepository boardRepository;
+    private final CardRepository cardRepository;
+    private final BoardListMapper boardListMapper;
 
-    @Autowired
-    private CardRepository cardRepository; // Inject CardRepository
-
-    @Autowired
-    private BoardListMapper boardListMapper;
-
-    /**
-     * Retrieves all lists associated with a specific board, ordered by the 'order' field.
-     *
-     * @param boardId The ID of the board.
-     * @return A list of BoardListDTOs.
-     */
-    public List<BoardListDTO> getLists(String boardId) {
-        List<BoardList> lists = boardListRepository.findByBoardIdOrderByOrderAsc(boardId);
-        return lists.stream()
-                .map(boardListMapper::toDTO)
-                .collect(Collectors.toList());
+    public BoardListService(BoardListRepository boardListRepository, BoardRepository boardRepository,
+                            CardRepository cardRepository, BoardListMapper boardListMapper) {
+        this.boardListRepository = boardListRepository;
+        this.boardRepository = boardRepository;
+        this.cardRepository = cardRepository;
+        this.boardListMapper = boardListMapper;
     }
 
-    /**
-     * Creates a new list within a specified board.
-     *
-     * @param title   The title of the new list.
-     * @param boardId The ID of the board where the list will be created.
-     * @return The created BoardListDTO.
-     */
+    public List<BoardListDTO> getLists(String boardId) {
+        List<BoardList> lists = boardListRepository.findByBoardIdOrderByOrderAsc(boardId);
+        return lists.stream().map(boardListMapper::toDTO).collect(Collectors.toList());
+    }
+
     public BoardListDTO createList(String title, String boardId) {
         try {
             Board board = boardRepository.findById(boardId)
                     .orElseThrow(() -> new ResourceNotFoundException("Board not found with ID: " + boardId));
 
-            Integer maxOrder = boardListRepository.findMaxOrderByBoardId(boardId)
-                    .orElse(0);
+            Integer maxOrder = boardListRepository.findMaxOrderByBoardId(boardId).orElse(0);
 
             BoardList list = new BoardList();
             list.setTitle(title);
@@ -73,18 +59,10 @@ public class BoardListService {
         }
     }
 
-    /**
-     * Updates an existing list's title and associated board.
-     *
-     * @param id      The ID of the list to update.
-     * @param title   The new title for the list.
-     * @param boardId The new board ID to associate with the list.
-     * @return The updated BoardListDTO.
-     */
     public BoardListDTO updateList(String id, String title, String boardId) {
         try {
             BoardList list = boardListRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("List not found with ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + id));
 
             Board board = boardRepository.findById(boardId)
                     .orElseThrow(() -> new ResourceNotFoundException("Board not found with ID: " + boardId));
@@ -100,15 +78,10 @@ public class BoardListService {
         }
     }
 
-    /**
-     * Deletes a list by its ID.
-     *
-     * @param id The ID of the list to delete.
-     */
     public void deleteList(String id) {
         try {
             if (!boardListRepository.existsById(id)) {
-                throw new ResourceNotFoundException("List not found with ID: " + id);
+                throw new ResourceNotFoundException(LIST_NOT_FOUND + id);
             }
             boardListRepository.deleteById(id);
         } catch (Exception e) {
@@ -117,12 +90,6 @@ public class BoardListService {
         }
     }
 
-    /**
-     * Retrieves the number of cards within a specific list.
-     *
-     * @param listId The ID of the list.
-     * @return The count of cards in the list.
-     */
     public int getCardCountByListId(String listId) {
         try {
             return cardRepository.countByBoardListId(listId);
@@ -132,16 +99,11 @@ public class BoardListService {
         }
     }
 
-    /**
-     * Reorders multiple lists based on the provided list of DTOs.
-     *
-     * @param lists A list of BoardListDTOs with updated order values.
-     */
     public void reorderLists(List<BoardListDTO> lists) {
         try {
             for (BoardListDTO dto : lists) {
                 BoardList existingList = boardListRepository.findById(dto.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("List not found with ID: " + dto.getId()));
+                        .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + dto.getId()));
                 existingList.setOrder(dto.getOrder());
                 boardListRepository.save(existingList);
             }
@@ -151,16 +113,10 @@ public class BoardListService {
         }
     }
 
-    /**
-     * Retrieves a specific list by its ID.
-     *
-     * @param id The ID of the list.
-     * @return The BoardListDTO if found.
-     */
     public BoardListDTO getBoardListById(String id) {
         try {
             BoardList list = boardListRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("List not found with ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + id));
             return boardListMapper.toDTO(list);
         } catch (Exception e) {
             log.error("Error retrieving list by ID: ", e);
