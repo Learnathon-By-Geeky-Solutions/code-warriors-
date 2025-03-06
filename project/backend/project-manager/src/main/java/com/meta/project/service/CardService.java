@@ -524,13 +524,7 @@ public class CardService {
         }
     }
 
-    /**
-     * Adds a todo to a card.
-     *
-     * @param cardId The ID of the card.
-     * @param todo   The todo to add.
-     * @return The updated CardDTO.
-     */
+
     public CardDTO addCardTodo(String cardId, Todo todo) {
         try {
             Card card = cardRepository.findById(cardId)
@@ -548,13 +542,7 @@ public class CardService {
         }
     }
 
-    /**
-     * Removes a todo from a card.
-     *
-     * @param cardId The ID of the card.
-     * @param todoId The ID of the todo to remove.
-     * @return The updated CardDTO.
-     */
+
     public CardDTO removeCardTodo(String cardId, String todoId) {
         try {
             Card card = cardRepository.findById(cardId)
