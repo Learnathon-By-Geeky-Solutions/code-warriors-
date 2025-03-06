@@ -7,12 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TodoMapper {
 
-    /**
-     * Converts a Todo entity to a TodoDTO.
-     *
-     * @param todo The Todo entity.
-     * @return The corresponding TodoDTO.
-     */
+
     public TodoDTO toDTO(Todo todo) {
         if (todo == null) {
             return null;
@@ -26,12 +21,6 @@ public class TodoMapper {
         return dto;
     }
 
-    /**
-     * Converts a TodoDTO to a Todo entity.
-     *
-     * @param todoDTO The TodoDTO.
-     * @return The corresponding Todo entity.
-     */
     public Todo toEntity(TodoDTO todoDTO) {
         if (todoDTO == null) {
             return null;
