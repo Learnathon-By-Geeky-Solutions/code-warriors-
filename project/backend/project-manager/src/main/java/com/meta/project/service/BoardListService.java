@@ -15,6 +15,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for managing BoardLists.
+ * This class provides methods to perform CRUD operations on BoardLists,
+ * as well as other business logic related to lists within a board.
+ */
 @Service
 @Slf4j
 public class BoardListService {
@@ -26,6 +31,15 @@ public class BoardListService {
     private final CardRepository cardRepository;
     private final BoardListMapper boardListMapper;
 
+
+    /**
+     * Constructor for BoardListService.
+     *
+     * @param boardListRepository Repository for accessing BoardList entities.
+     * @param boardRepository     Repository for accessing Board entities.
+     * @param cardRepository      Repository for accessing Card entities.
+     * @param boardListMapper     Mapper for converting between BoardList entities and DTOs.
+     */
     public BoardListService(BoardListRepository boardListRepository, BoardRepository boardRepository,
                             CardRepository cardRepository, BoardListMapper boardListMapper) {
         this.boardListRepository = boardListRepository;
@@ -34,11 +48,25 @@ public class BoardListService {
         this.boardListMapper = boardListMapper;
     }
 
+    /**
+     * Retrieves all lists associated with a given board ID, ordered by their order.
+     *
+     * @param boardId The ID of the board.
+     * @return A list of BoardListDTOs.
+     */
     public List<BoardListDTO> getLists(String boardId) {
         List<BoardList> lists = boardListRepository.findByBoardIdOrderByOrderAsc(boardId);
         return lists.stream().map(boardListMapper::toDTO).collect(Collectors.toList());
     }
 
+    /**
+     * Creates a new list within a specified board.
+     *
+     * @param title   The title of the new list.
+     * @param boardId The ID of the board to which the list will be added.
+     * @return The created BoardListDTO.
+     * @throws ServiceException If an error occurs during list creation.
+     */
     public BoardListDTO createList(String title, String boardId) {
         try {
             Board board = boardRepository.findById(boardId)
@@ -59,6 +87,15 @@ public class BoardListService {
         }
     }
 
+    /**
+     * Updates an existing list with a new title and/or board association.
+     *
+     * @param id      The ID of the list to update.
+     * @param title   The new title of the list.
+     * @param boardId The ID of the board to which the list will be associated.
+     * @return The updated BoardListDTO.
+     * @throws ServiceException If an error occurs during list update.
+     */
     public BoardListDTO updateList(String id, String title, String boardId) {
         try {
             BoardList list = boardListRepository.findById(id)
@@ -78,6 +115,12 @@ public class BoardListService {
         }
     }
 
+    /**
+     * Deletes a list by its ID.
+     *
+     * @param id The ID of the list to delete.
+     * @throws ServiceException If an error occurs during list deletion.
+     */
     public void deleteList(String id) {
         try {
             if (!boardListRepository.existsById(id)) {
@@ -90,6 +133,13 @@ public class BoardListService {
         }
     }
 
+    /**
+     * Retrieves the count of cards within a specific list.
+     *
+     * @param listId The ID of the list.
+     * @return The number of cards in the list.
+     * @throws ServiceException If an error occurs while counting cards.
+     */
     public int getCardCountByListId(String listId) {
         try {
             return cardRepository.countByBoardListId(listId);
@@ -98,7 +148,12 @@ public class BoardListService {
             throw new ServiceException("Failed to count cards in list.", e);
         }
     }
-
+    /**
+     * Reorders a list of BoardLists based on the provided DTOs.
+     *
+     * @param lists A list of BoardListDTOs with updated order values.
+     * @throws ServiceException If an error occurs during reordering.
+     */
     public void reorderLists(List<BoardListDTO> lists) {
         try {
             for (BoardListDTO dto : lists) {
@@ -112,7 +167,13 @@ public class BoardListService {
             throw new ServiceException("Failed to reorder lists.", e);
         }
     }
-
+    /**
+     * Retrieves a BoardList by its ID.
+     *
+     * @param id The ID of the list.
+     * @return The BoardListDTO representing the list.
+     * @throws ServiceException If an error occurs while retrieving the list.
+     */
     public BoardListDTO getBoardListById(String id) {
         try {
             BoardList list = boardListRepository.findById(id)

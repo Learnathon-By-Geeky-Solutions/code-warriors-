@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * REST controller for managing cards within a project management application.
+ * This class handles various operations related to cards, such as creation, retrieval,
+ * updates, deletion, and manipulation of card attributes like comments, todos, labels, etc.
+ */
+
 @RestController
 @RequestMapping("/pm/v1/lists")
 @Slf4j
