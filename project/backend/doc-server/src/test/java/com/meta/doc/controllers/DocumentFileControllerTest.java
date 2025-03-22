@@ -29,8 +29,6 @@ class DocumentFileControllerTest extends BaseIntegrationTest {
     @Autowired
     private DocsService docsService;
 
-    @TempDir
-    Path tempDir;
 
     private DocsDTO testDoc;
 

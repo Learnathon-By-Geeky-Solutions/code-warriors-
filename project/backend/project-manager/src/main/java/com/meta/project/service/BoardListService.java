@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 public class BoardListService {
 
     private static final String LIST_NOT_FOUND = "List not found with ID: ";
+    private static final String BOARD_NOT_FOUND = "Board not found with ID: ";
 
     private final BoardListRepository boardListRepository;
     private final BoardRepository boardRepository;
     private final CardRepository cardRepository;
     private final BoardListMapper boardListMapper;
-
 
     /**
      * Constructor for BoardListService.
@@ -48,6 +48,16 @@ public class BoardListService {
         this.boardListMapper = boardListMapper;
     }
 
+    private Board getBoardById(String boardId) {
+        return boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException(BOARD_NOT_FOUND + boardId));
+    }
+
+    private BoardList getBoardListEntityById(String id) {
+        return boardListRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + id));
+    }
+
     /**
      * Retrieves all lists associated with a given board ID, ordered by their order.
      *
@@ -57,6 +67,15 @@ public class BoardListService {
     public List<BoardListDTO> getLists(String boardId) {
         List<BoardList> lists = boardListRepository.findByBoardIdOrderByOrderAsc(boardId);
         return lists.stream().map(boardListMapper::toDTO).collect(Collectors.toList());
+    }
+
+    private BoardList createAndSaveNewList(String title, Board board) {
+        Integer maxOrder = boardListRepository.findMaxOrderByBoardId(board.getId()).orElse(0);
+        BoardList list = new BoardList();
+        list.setTitle(title);
+        list.setBoard(board);
+        list.setOrder(maxOrder + 1);
+        return boardListRepository.save(list);
     }
 
     /**
@@ -69,22 +88,21 @@ public class BoardListService {
      */
     public BoardListDTO createList(String title, String boardId) {
         try {
-            Board board = boardRepository.findById(boardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Board not found with ID: " + boardId));
-
-            Integer maxOrder = boardListRepository.findMaxOrderByBoardId(boardId).orElse(0);
-
-            BoardList list = new BoardList();
-            list.setTitle(title);
-            list.setBoard(board);
-            list.setOrder(maxOrder + 1);
-
-            BoardList savedList = boardListRepository.save(list);
+            Board board = getBoardById(boardId);
+            BoardList savedList = createAndSaveNewList(title, board);
             return boardListMapper.toDTO(savedList);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error creating list: ", e);
             throw new ServiceException("Failed to create list.", e);
         }
+    }
+
+    private BoardList updateAndSaveList(BoardList list, String title, Board board) {
+        list.setTitle(title);
+        list.setBoard(board);
+        return boardListRepository.save(list);
     }
 
     /**
@@ -98,21 +116,23 @@ public class BoardListService {
      */
     public BoardListDTO updateList(String id, String title, String boardId) {
         try {
-            BoardList list = boardListRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + id));
-
-            Board board = boardRepository.findById(boardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Board not found with ID: " + boardId));
-
-            list.setTitle(title);
-            list.setBoard(board);
-
-            BoardList updatedList = boardListRepository.save(list);
+            BoardList list = getBoardListEntityById(id);
+            Board board = getBoardById(boardId);
+            BoardList updatedList = updateAndSaveList(list, title, board);
             return boardListMapper.toDTO(updatedList);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error updating list: ", e);
             throw new ServiceException("Failed to update list.", e);
         }
+    }
+
+    private void deleteBoardListById(String id) {
+        if (!boardListRepository.existsById(id)) {
+            throw new ResourceNotFoundException(LIST_NOT_FOUND + id);
+        }
+        boardListRepository.deleteById(id);
     }
 
     /**
@@ -123,10 +143,9 @@ public class BoardListService {
      */
     public void deleteList(String id) {
         try {
-            if (!boardListRepository.existsById(id)) {
-                throw new ResourceNotFoundException(LIST_NOT_FOUND + id);
-            }
-            boardListRepository.deleteById(id);
+            deleteBoardListById(id);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error deleting list: ", e);
             throw new ServiceException("Failed to delete list.", e);
@@ -148,6 +167,12 @@ public class BoardListService {
             throw new ServiceException("Failed to count cards in list.", e);
         }
     }
+
+    private void updateListOrder(BoardList list, int order) {
+        list.setOrder(order);
+        boardListRepository.save(list);
+    }
+
     /**
      * Reorders a list of BoardLists based on the provided DTOs.
      *
@@ -157,16 +182,17 @@ public class BoardListService {
     public void reorderLists(List<BoardListDTO> lists) {
         try {
             for (BoardListDTO dto : lists) {
-                BoardList existingList = boardListRepository.findById(dto.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + dto.getId()));
-                existingList.setOrder(dto.getOrder());
-                boardListRepository.save(existingList);
+                BoardList existingList = getBoardListEntityById(dto.getId());
+                updateListOrder(existingList, dto.getOrder());
             }
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error reordering lists: ", e);
             throw new ServiceException("Failed to reorder lists.", e);
         }
     }
+
     /**
      * Retrieves a BoardList by its ID.
      *
@@ -176,9 +202,10 @@ public class BoardListService {
      */
     public BoardListDTO getBoardListById(String id) {
         try {
-            BoardList list = boardListRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException(LIST_NOT_FOUND + id));
+            BoardList list = getBoardListEntityById(id);
             return boardListMapper.toDTO(list);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error retrieving list by ID: ", e);
             throw new ServiceException("Failed to retrieve list.", e);
