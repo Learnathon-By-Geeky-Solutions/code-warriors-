@@ -6,22 +6,28 @@ import com.meta.doc.mapper.DocsMapper;
 import com.meta.doc.repositories.DocsRepo;
 import com.meta.doc.services.DocsService;
 import com.meta.doc.services.RedisService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 import java.util.List;
 
+/**
+ * Implementation of DocsService for managing document operations.
+ */
 @Service
 @Transactional(readOnly = true)
 public class DocsServiceImpl implements DocsService {
 
     private final DocsRepo docsRepository;
-
-    @Autowired
-    private RedisService redisService;
+    private final RedisService redisService;
     private static final long CACHE_TTL = 3600;
+
+    /**
+     * Constructor-based dependency injection.
+     * @param docsRepository The repository for document persistence.
+     * @param redisService The service for caching documents.
+     */
     public DocsServiceImpl(DocsRepo docsRepository, RedisService redisService) {
         this.docsRepository = docsRepository;
         this.redisService = redisService;
@@ -81,7 +87,6 @@ public class DocsServiceImpl implements DocsService {
 
         return doc;
     }
-
 
     @Override
     @Transactional
@@ -195,10 +200,5 @@ public class DocsServiceImpl implements DocsService {
     public String getGrandparentId(String docId) {
         Docs doc = findDocsById(docId); // Helper method to fetch the document
         return doc.getRootGrandparentId();
-    }
-
-    private void invalidateDocCache(String id) {
-        redisService.delete("doc:" + id);
-        redisService.delete("docs:all");
     }
 }
