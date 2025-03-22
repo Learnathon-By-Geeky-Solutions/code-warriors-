@@ -8,7 +8,6 @@ import com.meta.doc.repositories.DocsRepo;
 import com.meta.doc.services.DocumentFileService;
 import com.meta.doc.services.FileService;
 import com.meta.doc.services.RedisService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +25,11 @@ public class DocumentFileServiceImpl implements DocumentFileService {
     private final DocumentFileRepository documentFileRepository;
     private final DocsRepo docsRepository;
     private final FileService fileService;
+    private final RedisService redisService;
 
-    @Autowired
-    private RedisService redisService;
     private static final long CACHE_TTL = 3600;
+    private static final String DOCFILES_CACHE_PREFIX = "docfiles:";
+
     @Value("${project.file.path}")
     private String basePath;
 
@@ -50,12 +50,10 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         Docs document = docsRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
 
-
-
         // Upload the file
         String storedFileName = fileService.uploadResource(basePath, file);
 
-        // Create DocumentFile entity
+        // Create and populate DocumentFile entity
         DocumentFile documentFile = new DocumentFile();
         documentFile.setId(UUID.randomUUID().toString());
         documentFile.setDocument(document);
@@ -63,29 +61,29 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         documentFile.setStoredFileName(storedFileName);
         documentFile.setFilePath(basePath);
         documentFile.setFileType(file.getContentType());
-        // Save the file metadata
+
         // Save the file metadata
         DocumentFile savedFile = documentFileRepository.save(documentFile);
-
-        // Convert and return DTO
         DocumentFileDTO fileDTO = convertToDTO(savedFile);
 
         // Cache the file metadata
         redisService.set("docfile:" + fileDTO.getId(), fileDTO, CACHE_TTL);
 
         // Invalidate files cache for the document
-        redisService.delete("docfiles:" + documentId);
-        // Convert and return DTO
+        redisService.delete(DOCFILES_CACHE_PREFIX + documentId);
+
         return fileDTO;
     }
 
     @Override
     public List<DocumentFileDTO> getFilesForDocument(String documentId) {
-        String cacheKey = "docfiles:" + documentId;
+        String cacheKey = DOCFILES_CACHE_PREFIX + documentId;
         List<DocumentFileDTO> cachedFiles = redisService.get(cacheKey, List.class);
         if (cachedFiles != null) {
             return cachedFiles;
         }
+
+        // Fetch files from database and convert to DTO
         List<DocumentFileDTO> files = documentFileRepository.findByDocument_Id(documentId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -103,13 +101,19 @@ public class DocumentFileServiceImpl implements DocumentFileService {
 
         String documentId = file.getDocument().getId();
 
+        // Delete file from database
         documentFileRepository.delete(file);
 
         // Remove file from cache
         redisService.delete("docfile:" + fileId);
-        redisService.delete("docfiles:" + documentId);
+        redisService.delete(DOCFILES_CACHE_PREFIX + documentId);
     }
 
+    /**
+     * Converts a DocumentFile entity to a DTO.
+     * @param documentFile The document file entity.
+     * @return Corresponding DTO.
+     */
     private DocumentFileDTO convertToDTO(DocumentFile documentFile) {
         DocumentFileDTO dto = new DocumentFileDTO();
         dto.setId(documentFile.getId());
