@@ -30,8 +30,11 @@ public class Routes {
     @Value("${project.manager.url}")
     private String projectManagerServiceUrl;
 
-    // Define constant for fallback URI to avoid duplication
+    //fallback URI
     private static final URI FALLBACK_URI = URI.create("forward:/fallbackRoute");
+
+    // API docs path
+    private static final String API_DOCS_PATH = "/v3/api-docs";
 
     // Office Service Routes
 
@@ -48,7 +51,7 @@ public class Routes {
         return route("office_service_swagger")
                 .route(GET("/aggregate/office-service/v3/api-docs"), HandlerFunctions.http(officeServiceUrl))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("officeServiceSwaggerCircuitBreaker", FALLBACK_URI))
-                .filter(setPath("/v3/api-docs"))
+                .filter(setPath(API_DOCS_PATH))
                 .build();
     }
 
@@ -67,7 +70,7 @@ public class Routes {
         return route("user_service_swagger")
                 .route(GET("/aggregate/user-service/v3/api-docs"), HandlerFunctions.http(userServiceUrl))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("userServiceSwaggerCircuitBreaker", FALLBACK_URI))
-                .filter(setPath("/v3/api-docs"))
+                .filter(setPath(API_DOCS_PATH))
                 .build();
     }
 
@@ -86,7 +89,7 @@ public class Routes {
         return route("document_service_swagger")
                 .route(GET("/aggregate/document-service/v3/api-docs"), HandlerFunctions.http(documentServiceUrl))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("documentServiceSwaggerCircuitBreaker", FALLBACK_URI))
-                .filter(setPath("/v3/api-docs"))
+                .filter(setPath(API_DOCS_PATH))
                 .build();
     }
 
@@ -106,7 +109,7 @@ public class Routes {
         return route("activity_tracker_service_swagger")
                 .route(GET("/aggregate/activity-tracker-service/v3/api-docs"), HandlerFunctions.http(activityTrackerServiceUrl))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("activityTrackerServiceSwaggerCircuitBreaker", FALLBACK_URI))
-                .filter(setPath("/v3/api-docs"))
+                .filter(setPath(API_DOCS_PATH))
                 .build();
     }
 
@@ -126,7 +129,7 @@ public class Routes {
         return route("project_manager_service_swagger")
                 .route(GET("/aggregate/project-manager-service/v3/api-docs"), HandlerFunctions.http(projectManagerServiceUrl))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("projectManagerServiceSwaggerCircuitBreaker", FALLBACK_URI))
-                .filter(setPath("/v3/api-docs"))
+                .filter(setPath(API_DOCS_PATH))
                 .build();
     }
 
