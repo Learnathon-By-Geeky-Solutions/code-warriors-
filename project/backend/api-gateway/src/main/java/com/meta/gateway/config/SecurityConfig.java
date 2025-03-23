@@ -27,16 +27,28 @@ public class SecurityConfig {
 
     // Security Filter Chain Configuration
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(freeResourceUrls)
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
+            throws IllegalStateException, IllegalArgumentException {
+        try {
+            return httpSecurity.authorizeHttpRequests(authorize -> authorize
+                            .requestMatchers(freeResourceUrls)
+                            .permitAll()
+                            .anyRequest().authenticated())
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                    .build();
+        } catch (Exception e) {
+            // Convert to a more specific exception
+            if (e instanceof IllegalStateException) {
+                throw (IllegalStateException) e;
+            } else if (e instanceof IllegalArgumentException) {
+                throw (IllegalArgumentException) e;
+            } else {
+                // Handle other types of exceptions
+                throw new IllegalStateException("Security configuration error: " + e.getMessage(), e);
+            }
+        }
     }
-
 
     // CORS Configuration Source
     @Bean
