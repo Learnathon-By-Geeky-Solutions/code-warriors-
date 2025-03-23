@@ -19,9 +19,8 @@ public class JwtUtil {
                 return null;
             }
             DecodedJWT jwt = JWT.decode(token);
-            String subject = jwt.getSubject();
 
-            return subject;
+            return jwt.getSubject();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,8 +31,7 @@ public class JwtUtil {
     private static String extractToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            String token = bearerToken.substring(7);
-            return token;
+            return bearerToken.substring(7);
         }
         return null;
     }
