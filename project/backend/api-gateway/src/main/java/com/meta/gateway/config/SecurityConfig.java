@@ -11,7 +11,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-
 @Configuration
 public class SecurityConfig {
 
@@ -24,11 +23,9 @@ public class SecurityConfig {
             "/office-service/v3/api-docs"
     };
 
-
     // Security Filter Chain Configuration
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
-            throws IllegalStateException, IllegalArgumentException {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         try {
             return httpSecurity.authorizeHttpRequests(authorize -> authorize
                             .requestMatchers(freeResourceUrls)
@@ -37,16 +34,13 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                     .build();
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            // Convert to a more specific exception
-            if (e instanceof IllegalStateException) {
-                throw (IllegalStateException) e;
-            } else if (e instanceof IllegalArgumentException) {
-                throw (IllegalArgumentException) e;
-            } else {
-                // Handle other types of exceptions
-                throw new IllegalStateException("Security configuration error: " + e.getMessage(), e);
-            }
+            // Handle other types of exceptions
+            throw new IllegalStateException("Security configuration error: " + e.getMessage(), e);
         }
     }
 
@@ -55,9 +49,9 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD" , "PATCH"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        return (CorsConfigurationSource) source;
+        return source;
     }
 }
