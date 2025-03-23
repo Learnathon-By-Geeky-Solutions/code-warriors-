@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class TodoMapper {
 
-
     public TodoDTO toDTO(Todo todo) {
         if (todo == null) {
             return null;
@@ -29,7 +28,7 @@ public class TodoMapper {
         Todo todo = new Todo();
         todo.setId(todoDTO.getId());
         todo.setContent(todoDTO.getContent());
-        todo.setCompleted(todoDTO.getCompleted() != null ? todoDTO.getCompleted() : false);
+        todo.setCompleted(todoDTO.getCompleted());
 
         return todo;
     }
