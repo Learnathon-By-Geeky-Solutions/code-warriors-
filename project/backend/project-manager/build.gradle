@@ -62,7 +62,8 @@ sonarqube {
 	}
 }
 
-
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
+

@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+	id 'org.sonarqube' version '3.5.0.2730'
 }
 
 group = 'com.meta'
@@ -28,6 +30,32 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 }
 
+jacoco {
+	toolVersion = "0.8.8"
+}
+
+// ✅ JaCoCo test report configuration
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = false
+		csv.required = false
+	}
+}
+
+// ✅ SonarQube (SonarCloud) configuration
+sonarqube {
+	properties {
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+		property "sonar.organization", "Learnathon-By-Geeky-Solutions"
+		property "sonar.host.url", "https://sonarcloud.io"
+		property "sonar.login", System.getenv("SONAR_TOKEN")
+		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+	}
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
