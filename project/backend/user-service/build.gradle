@@ -34,36 +34,33 @@ jacoco {
 	toolVersion = "0.8.11"  // Updated to latest version
 }
 
-// ✅ JaCoCo test report configuration
 jacocoTestReport {
 	dependsOn test
 	reports {
-		xml.required = true
-		html.required = false
-		csv.required = false
+		xml.required.set(true)
+		html.required.set(false)
+		csv.required.set(false)
 	}
 
-	// Add exclusions for problematic classes
 	afterEvaluate {
 		classDirectories.setFrom(
-				files(classDirectories.files.collect {
-					fileTree(dir: it, excludes: [
-							// Exclude model, config, exception and dto classes
-							'**/config/**',
-							'**/exception/**',
-							'**/model/**',
-							'**/dto/**',
-							'**/entity/**',
-							// Exclude problematic JDK internal classes
-							'jdk/**',
-							'sun/**',
-							'com/sun/**',
-							'java/**'
-					])
-				})
+			files(classDirectories.files.collect {
+				fileTree(dir: it, excludes: [
+					'**/config/**',
+					'**/exception/**',
+					'**/model/**',
+					'**/dto/**',
+					'**/entity/**',
+					'jdk/**',
+					'sun/**',
+					'com/sun/**',
+					'java/**'
+				])
+			})
 		)
 	}
 }
+
 
 // ✅ SonarQube (SonarCloud) configuration
 sonarqube {
