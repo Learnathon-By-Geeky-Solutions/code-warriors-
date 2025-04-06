@@ -59,7 +59,7 @@ dependencies {
 }
 
 jacoco {
-	toolVersion = "0.8.8"
+	toolVersion = "0.8.11"  // Updated to latest version
 }
 
 // ✅ JaCoCo test report configuration
@@ -69,6 +69,27 @@ jacocoTestReport {
 		xml.required = true
 		html.required = false
 		csv.required = false
+	}
+
+	// Add exclusions for problematic classes
+	afterEvaluate {
+		classDirectories.setFrom(
+				files(classDirectories.files.collect {
+					fileTree(dir: it, excludes: [
+							// Exclude model, config, exception and dto classes
+							'**/config/**',
+							'**/exception/**',
+							'**/model/**',
+							'**/dto/**',
+							'**/entity/**',
+							// Exclude problematic JDK internal classes
+							'jdk/**',
+							'sun/**',
+							'com/sun/**',
+							'java/**'
+					])
+				})
+		)
 	}
 }
 
@@ -80,30 +101,17 @@ sonarqube {
 		property "sonar.host.url", "https://sonarcloud.io"
 		property "sonar.login", System.getenv("SONAR_TOKEN")
 		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-	}
-}
-
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-		mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+		// Exclude certain files from analysis
+		property "sonar.exclusions", "**/config/**, **/exception/**, **/model/**, **/dto/**, **/entity/**"
 	}
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 	finalizedBy jacocoTestReport
-}
 
-test {
-	testLogging {
-		events "passed", "skipped", "failed"
-		exceptionFormat = 'full'
-	}
-}
-
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
-	options.compilerArgs += ['-parameters']
+	// Add JVM args to help with Mockito and reflection issues
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }

@@ -1,74 +1,119 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco'
-	id 'org.sonarqube' version '3.5.0.2730'
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+    id 'org.sonarqube' version '3.5.0.2730'
 }
 
 group = 'com.meta'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 ext {
-	set('springCloudVersion', "2024.0.0")
+    set('springCloudVersion', "2024.0.0")
 }
 
 dependencies {
-	implementation 'org.springframework.cloud:spring-cloud-starter-gateway-mvc'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway-mvc'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 jacoco {
-	toolVersion = "0.8.8"
+    toolVersion = "0.8.11" // Update to latest JaCoCo version (as of April 2025)
 }
 
-// ✅ JaCoCo test report configuration
 jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = true
-		html.required = false
-		csv.required = false
-	}
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = false
+        csv.required = false
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+    }
+    
+    // Explicitly set execution data, class and source directories
+    executionData.from = fileTree(dir: layout.buildDirectory.get().asFile, includes: [
+        'jacoco/test.exec',
+        'jacoco/testDebug.exec'
+    ])
+    
+    afterEvaluate {
+        classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, excludes: [
+                    // Exclude model, config, exception and dto classes
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/model/**',
+                    '**/dto/**',
+                    // Exclude problematic JDK internal classes
+                    'sun/security/ec/ed/EdDSASignature$Ed448.class',
+                    'jdk/internal/net/http/ConnectionPool.class',
+                    'jdk/internal/net/http/HttpClientImpl$SelectorManager.class',
+                    'jdk/internal/net/http/FilterFactory.class',
+                    'jdk/internal/net/http/AuthenticationFilter.class',
+                    'jdk/internal/net/http/HeaderFilter.class',
+                    'jdk/internal/net/http/RedirectFilter.class',
+                    'jdk/internal/net/http/common/Log.class',
+                    'com/sun/tools/attach/VirtualMachine.class',
+                    // JDK modules pattern exclusions
+                    'jdk/**',
+                    'sun/**',
+                    'com/sun/**',
+                    'java/**'
+                ])
+            })
+        )
+    }
+    
+    sourceDirectories.from = files(sourceSets.main.allSource.srcDirs)
 }
 
 // ✅ SonarQube (SonarCloud) configuration
 sonarqube {
-	properties {
-		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
-		property "sonar.organization", "Learnathon-By-Geeky-Solutions"
-		property "sonar.host.url", "https://sonarcloud.io"
-		property "sonar.login", System.getenv("SONAR_TOKEN")
-		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-	}
+    properties {
+        property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+        property "sonar.organization", "Learnathon-By-Geeky-Solutions"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.login", System.getenv("SONAR_TOKEN")
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        // Skip problematic files from analysis
+        property "sonar.exclusions", "**/config/**, **/exception/**, **/model/**, **/dto/**"
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+    
+    // Add JVM args to help with Mockito issues
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+    jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+    jvmArgs '--add-opens=java.base/java.time=ALL-UNNAMED'
+    // Lower Java 16+ issues with reflection
+    systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }
-

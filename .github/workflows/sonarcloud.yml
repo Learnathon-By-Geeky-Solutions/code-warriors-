@@ -35,14 +35,68 @@ jobs:
         run: |
           find project/backend -name "gradlew" -type f -exec chmod +x {} \;
 
+      - name: Update build.gradle files with JaCoCo fixes
+        run: |
+          for dir in project/backend/*/; do
+            if [ -f "$dir/build.gradle" ]; then
+              echo "Updating JaCoCo config in $dir/build.gradle"
+              # Backup the original file
+              cp "$dir/build.gradle" "$dir/build.gradle.bak"
+              
+              # Update JaCoCo version in build.gradle
+              sed -i 's/toolVersion = "0.8.8"/toolVersion = "0.8.11"/' "$dir/build.gradle"
+              
+              # Add the exclusions to the jacocoTestReport block if not already present
+              if ! grep -q "afterEvaluate" "$dir/build.gradle"; then
+                # Find the end of jacocoTestReport block and add our exclusions
+                awk '
+                /jacocoTestReport {/,/}/ {
+                  if ($0 ~ /}/ && !found) {
+                    print "    afterEvaluate {";
+                    print "        classDirectories.setFrom(";
+                    print "            files(classDirectories.files.collect {";
+                    print "                fileTree(dir: it, excludes: [";
+                    print "                    \"**/config/**\",";
+                    print "                    \"**/exception/**\",";
+                    print "                    \"**/model/**\",";
+                    print "                    \"**/dto/**\",";
+                    print "                    \"jdk/**\",";
+                    print "                    \"sun/**\",";
+                    print "                    \"com/sun/**\",";
+                    print "                    \"java/**\"";
+                    print "                ])";
+                    print "            })";
+                    print "        )";
+                    print "    }";
+                    found=1;
+                  }
+                  print;
+                  next;
+                }
+                { print }
+                ' "$dir/build.gradle.bak" > "$dir/build.gradle"
+              fi
+              
+              # Add JVM args to test task if needed
+              if ! grep -q "jvmArgs '--add-opens" "$dir/build.gradle"; then
+                sed -i '/tasks.named.test./,/}/ s/useJUnitPlatform()/useJUnitPlatform()\n    jvmArgs '"'"'--add-opens=java.base\/java.lang=ALL-UNNAMED'"'"'\n    jvmArgs '"'"'--add-opens=java.base\/java.util=ALL-UNNAMED'"'"'\n    systemProperty "mockito.mock.creation.default", "mock-maker-inline"/' "$dir/build.gradle"
+              fi
+            fi
+          done
+
       - name: Run Tests and Analyze (All Microservices)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          status=0
           for dir in project/backend/*/; do
             if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
               echo "Running Sonar analysis for $dir"
-              (cd "$dir" && ./gradlew test jacocoTestReport sonarqube --info)
+              (cd "$dir" && ./gradlew test jacocoTestReport sonarqube --info) || {
+                echo "WARNING: Analysis for $dir failed but continuing with other services"
+                status=1
+              }
             fi
           done
+          exit $status

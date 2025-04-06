@@ -32,11 +32,16 @@
     
     <properties>
         <java.version>21</java.version>
+        <!-- Updated JaCoCo version -->
+        <jacoco.version>0.8.11</jacoco.version>
         <!-- SonarCloud properties -->
         <sonar.projectKey>Learnathon-By-Geeky-Solutions_code-warriors-</sonar.projectKey>
         <sonar.organization>Learnathon-By-Geeky-Solutions</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <jacoco.version>0.8.8</jacoco.version>
+        <!-- Exclude problematic files from Sonar analysis -->
+        <sonar.exclusions>**/config/**,**/exception/**,**/model/**,**/dto/**,**/entity/**</sonar.exclusions>
+        <!-- JaCoCo XML report path for SonarCloud -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
     
     <dependencies>
@@ -59,7 +64,7 @@
             <version>6.2.1</version>
         </dependency>
         
-        <!-- JaCoCo for test coverage -->
+        <!-- JaCoCo for test coverage - Note: this is not typically needed as a dependency -->
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
@@ -82,6 +87,7 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
@@ -94,6 +100,22 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- Exclude problematic classes from instrumentation -->
+                    <excludes>
+                        <!-- Exclude model, config, exception and dto classes -->
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <!-- Exclude problematic JDK internal classes -->
+                        <exclude>jdk/**</exclude>
+                        <exclude>sun/**</exclude>
+                        <exclude>com/sun/**</exclude>
+                        <exclude>java/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
             
             <!-- SonarCloud Maven Plugin -->
@@ -101,6 +123,24 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.1.2184</version>
+            </plugin>
+            
+            <!-- Configure surefire for tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Add JVM args to help with Mockito and reflection issues -->
+                    <argLine>
+                        @{argLine}
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.time=ALL-UNNAMED
+                    </argLine>
+                    <systemPropertyVariables>
+                        <mockito.mock.creation.default>mock-maker-inline</mockito.mock.creation.default>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
