@@ -1,86 +1,89 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco'
-	id 'org.sonarqube' version '3.5.0.2730'
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+    id 'org.sonarqube' version '3.5.0.2730'
 }
 
 group = 'com.meta'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.keycloak:keycloak-admin-client:24.0.1'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-	implementation 'org.projectlombok:lombok'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-	annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.keycloak:keycloak-admin-client:24.0.1'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.projectlombok:lombok'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
+    testImplementation 'org.testcontainers:testcontainers:1.19.0'
+    testImplementation 'org.testcontainers:mysql:1.19.0'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers:3.1.0'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
 }
 
 jacoco {
-	toolVersion = "0.8.11"  // Updated to latest version
+    toolVersion = "0.8.11"
 }
 
 jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required.set(true)
-		html.required.set(false)
-		csv.required.set(false)
-	}
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+        csv.required.set(false)
+    }
 
-	afterEvaluate {
-		classDirectories.setFrom(
-			files(classDirectories.files.collect {
-				fileTree(dir: it, excludes: [
-					'**/config/**',
-					'**/exception/**',
-					'**/model/**',
-					'**/dto/**',
-					'**/entity/**',
-					'jdk/**',
-					'sun/**',
-					'com/sun/**',
-					'java/**'
-				])
-			})
-		)
-	}
+    afterEvaluate {
+        classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, excludes: [
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/model/**',
+                    '**/dto/**',
+                    '**/entity/**',
+                    'jdk/**',
+                    'sun/**',
+                    'com/sun/**',
+                    'java/**'
+                ])
+            })
+        )
+    }
 }
 
-
-// ✅ SonarQube (SonarCloud) configuration
 sonarqube {
-	properties {
-		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
-		property "sonar.organization", "Learnathon-By-Geeky-Solutions"
-		property "sonar.host.url", "https://sonarcloud.io"
-		property "sonar.login", System.getenv("SONAR_TOKEN")
-		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-		// Exclude certain files from analysis
-		property "sonar.exclusions", "**/config/**, **/exception/**, **/model/**, **/dto/**, **/entity/**"
-	}
+    properties {
+        property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+        property "sonar.organization", "Learnathon-By-Geeky-Solutions"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.login", System.getenv("SONAR_TOKEN")
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.exclusions", "**/config/**, **/exception/**, **/model/**, **/dto/**, **/entity/**"
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 
-	// Add JVM args to help with Mockito and reflection issues
-	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
-	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-	systemProperty "mockito.mock.creation.default", "mock-maker-inline"
+    // Add JVM args to help with Mockito and reflection issues
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+    jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+    systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }
