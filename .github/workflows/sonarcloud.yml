@@ -173,7 +173,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
             -Dsonar.organization=learnathon-by-geeky-solutions
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
