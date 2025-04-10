@@ -1,107 +1,3 @@
-# # .github/workflows/sonarcloud.yml
-
-# name: SonarCloud
-
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     types: [opened, synchronize, reopened]
-
-# jobs:
-#   build:
-#     name: Build and Analyze
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
-
-#       - name: Set up JDK
-#         uses: actions/setup-java@v3
-#         with:
-#           java-version: '21'
-#           distribution: 'temurin'
-
-#       - name: Cache Gradle
-#         uses: actions/cache@v3
-#         with:
-#           path: ~/.gradle/caches
-#           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-#       - name: Make all gradlew files executable
-#         run: |
-#           find project/backend -name "gradlew" -type f -exec chmod +x {} \;
-
-#       - name: Update build.gradle files with JaCoCo fixes
-#         run: |
-#           for dir in project/backend/*/; do
-#             if [ -f "$dir/build.gradle" ]; then
-#               echo "Updating JaCoCo config in $dir/build.gradle"
-#               # Backup the original file
-#               cp "$dir/build.gradle" "$dir/build.gradle.bak"
-              
-#               # Update JaCoCo version in build.gradle
-#               sed -i 's/toolVersion = "0.8.8"/toolVersion = "0.8.11"/' "$dir/build.gradle"
-              
-#               # Add the exclusions to the jacocoTestReport block if not already present
-#               if ! grep -q "afterEvaluate" "$dir/build.gradle"; then
-#                 # Find the end of jacocoTestReport block and add our exclusions
-#                 awk '
-#                 /jacocoTestReport {/,/}/ {
-#                   if ($0 ~ /}/ && !found) {
-#                     print "    afterEvaluate {";
-#                     print "        classDirectories.setFrom(";
-#                     print "            files(classDirectories.files.collect {";
-#                     print "                fileTree(dir: it, excludes: [";
-#                     print "                    \"**/config/**\",";
-#                     print "                    \"**/exception/**\",";
-#                     print "                    \"**/model/**\",";
-#                     print "                    \"**/dto/**\",";
-#                     print "                    \"jdk/**\",";
-#                     print "                    \"sun/**\",";
-#                     print "                    \"com/sun/**\",";
-#                     print "                    \"java/**\"";
-#                     print "                ])";
-#                     print "            })";
-#                     print "        )";
-#                     print "    }";
-#                     found=1;
-#                   }
-#                   print;
-#                   next;
-#                 }
-#                 { print }
-#                 ' "$dir/build.gradle.bak" > "$dir/build.gradle"
-#               fi
-              
-#               # Add JVM args to test task if needed
-#               if ! grep -q "jvmArgs '--add-opens" "$dir/build.gradle"; then
-#                 sed -i '/tasks.named.test./,/}/ s/useJUnitPlatform()/useJUnitPlatform()\n    jvmArgs '"'"'--add-opens=java.base\/java.lang=ALL-UNNAMED'"'"'\n    jvmArgs '"'"'--add-opens=java.base\/java.util=ALL-UNNAMED'"'"'\n    systemProperty "mockito.mock.creation.default", "mock-maker-inline"/' "$dir/build.gradle"
-#               fi
-#             fi
-#           done
-
-#       - name: Run Tests and Analyze (All Microservices)
-#         env:
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: |
-#           status=0
-#           for dir in project/backend/*/; do
-#             if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
-#               echo "Running Sonar analysis for $dir"
-#               (cd "$dir" && ./gradlew test jacocoTestReport sonarqube --info) || {
-#                 echo "WARNING: Analysis for $dir failed but continuing with other services"
-#                 status=1
-#               }
-#             fi
-#           done
-#           exit $status
-
-
 name: SonarCloud Analysis
 on:
   push:
@@ -143,7 +39,7 @@ jobs:
               # Backup the original file
               cp "$dir/build.gradle" "$dir/build.gradle.bak"
               
-              # Update JaCoCo version in build.gradle
+              # Update JaCoCo version in build.gradle if it exists
               sed -i 's/toolVersion = "0.8.8"/toolVersion = "0.8.11"/' "$dir/build.gradle"
               
               # Add the exclusions to the jacocoTestReport block if not already present
@@ -186,31 +82,47 @@ jobs:
       
       - name: Run Tests and Generate JaCoCo Reports
         run: |
-          status=0
+          echo "Running tests and generating JaCoCo reports for all services in project/backend/"
+          found_services=false
+          
           for dir in project/backend/*/; do
             if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
-              echo "Running tests and generating JaCoCo report for $dir"
+              found_services=true
+              service_name=$(basename "$dir")
+              echo "Processing service: $service_name"
+              
               (cd "$dir" && ./gradlew test jacocoTestReport --info) || {
-                echo "WARNING: Tests or JaCoCo report generation for $dir failed but continuing with other services"
-                status=1
+                echo "WARNING: Tests or JaCoCo report generation for $service_name failed"
+                # Continue with next service instead of failing immediately
               }
             fi
           done
-          exit $status
+          
+          if [ "$found_services" = false ]; then
+            echo "No microservices with build.gradle and gradlew found in project/backend/"
+            exit 1
+          fi
+      
+      - name: List generated JaCoCo reports
+        run: |
+          echo "Checking for generated JaCoCo reports..."
+          find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml" -ls
       
       - name: SonarCloud Scan
+        if: success() || failure()  # Run even if previous step failed
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
-          projectBaseDir: project/backend
+          projectBaseDir: .
           args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors
             -Dsonar.organization=learnathon-by-geeky-solutions
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=*/src/main/java
-            -Dsonar.tests=*/src/test/java
-            -Dsonar.java.binaries=*/build/classes/java/main
-            -Dsonar.java.test.binaries=*/build/classes/java/test
-            -Dsonar.coverage.jacoco.xmlReportPaths=*/build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.sources=project/backend/*/src/main/java
+            -Dsonar.tests=project/backend/*/src/test/java
+            -Dsonar.java.binaries=project/backend/*/build/classes/java/main
+            -Dsonar.java.test.binaries=project/backend/*/build/classes/java/test
+            -Dsonar.coverage.jacoco.xmlReportPaths=project/backend/*/build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.verbose=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
