@@ -30,10 +30,14 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
     implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
-    testImplementation 'org.testcontainers:testcontainers:1.19.0'
-    testImplementation 'org.testcontainers:mysql:1.19.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers:3.1.0'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
+
+    // Testcontainers MySQL module
+    testImplementation 'org.testcontainers:mysql:1.18.3'
+
+    // Spring Boot integration for Testcontainers (if using Spring Boot 3)
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers:3.1.0'
 }
 
 jacoco {
