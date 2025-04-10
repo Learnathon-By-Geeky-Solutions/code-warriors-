@@ -42,12 +42,22 @@ jobs:
               # Update JaCoCo version in build.gradle if it exists
               sed -i 's/toolVersion = "0.8.8"/toolVersion = "0.8.11"/' "$dir/build.gradle"
               
-              # Add the exclusions to the jacocoTestReport block if not already present
-              if ! grep -q "afterEvaluate" "$dir/build.gradle"; then
-                # Find the end of jacocoTestReport block and add our exclusions
+              # Make sure the JaCoCo plugin is applied if not already
+              if ! grep -q "apply plugin: 'jacoco'" "$dir/build.gradle"; then
+                echo "apply plugin: 'jacoco'" >> "$dir/build.gradle"
+              fi
+              
+              # Add or update JaCoCo test report configuration
+              if grep -q "jacocoTestReport {" "$dir/build.gradle"; then
+                # JaCoCo block exists, update it
                 awk '
                 /jacocoTestReport {/,/}/ {
                   if ($0 ~ /}/ && !found) {
+                    print "    reports {";
+                    print "        xml.required = true";
+                    print "        csv.required = false";
+                    print "        html.required = true";
+                    print "    }";
                     print "    afterEvaluate {";
                     print "        classDirectories.setFrom(";
                     print "            files(classDirectories.files.collect {";
@@ -71,11 +81,44 @@ jobs:
                 }
                 { print }
                 ' "$dir/build.gradle.bak" > "$dir/build.gradle"
+              else
+                # JaCoCo block doesn't exist, add it
+                cat >> "$dir/build.gradle" << EOF
+                
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = false
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, excludes: [
+                    "**/config/**",
+                    "**/exception/**",
+                    "**/model/**",
+                    "**/dto/**",
+                    "jdk/**",
+                    "sun/**",
+                    "com/sun/**",
+                    "java/**"
+                ])
+            })
+        )
+    }
+}
+
+// Add test task dependencies to ensure JaCoCo data is generated
+test {
+    finalizedBy jacocoTestReport
+}
+EOF
               fi
               
               # Add JVM args to test task if needed
               if ! grep -q "jvmArgs '--add-opens" "$dir/build.gradle"; then
-                sed -i '/tasks.named.test./,/}/ s/useJUnitPlatform()/useJUnitPlatform()\n    jvmArgs '"'"'--add-opens=java.base\/java.lang=ALL-UNNAMED'"'"'\n    jvmArgs '"'"'--add-opens=java.base\/java.util=ALL-UNNAMED'"'"'\n    systemProperty "mockito.mock.creation.default", "mock-maker-inline"/' "$dir/build.gradle"
+                sed -i '/test {/,/}/ s/finalizedBy jacocoTestReport/finalizedBy jacocoTestReport\n    jvmArgs '"'"'--add-opens=java.base\/java.lang=ALL-UNNAMED'"'"'\n    jvmArgs '"'"'--add-opens=java.base\/java.util=ALL-UNNAMED'"'"'\n    systemProperty "mockito.mock.creation.default", "mock-maker-inline"/' "$dir/build.gradle"
               fi
             fi
           done
@@ -91,7 +134,8 @@ jobs:
               service_name=$(basename "$dir")
               echo "Processing service: $service_name"
               
-              (cd "$dir" && ./gradlew test jacocoTestReport --info) || {
+              # Run test and generate reports explicitly
+              (cd "$dir" && ./gradlew clean test jacocoTestReport --info) || {
                 echo "WARNING: Tests or JaCoCo report generation for $service_name failed"
                 # Continue with next service instead of failing immediately
               }
@@ -103,10 +147,27 @@ jobs:
             exit 1
           fi
       
-      - name: List generated JaCoCo reports
+      - name: List generated JaCoCo reports and validate
         run: |
           echo "Checking for generated JaCoCo reports..."
           find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml" -ls
+          
+          # Check if any reports exist
+          if [ -z "$(find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml")" ]; then
+            echo "WARNING: No JaCoCo reports were generated. Coverage data will be missing!"
+          fi
+          
+          # Check the content of reports
+          for report in $(find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml"); do
+            echo "Validating report: $report"
+            if [ ! -s "$report" ]; then
+              echo "WARNING: Report file $report is empty!"
+            else
+              echo "Report file $report is valid."
+              # Display some basic info from the report
+              grep -A 1 "<report" "$report" || echo "Could not find report tag in $report"
+            fi
+          done
       
       - name: Prepare SonarCloud parameters
         id: sonar-params
@@ -117,9 +178,21 @@ jobs:
           BINARIES=""
           TEST_BINARIES=""
           JACOCO_REPORTS=""
+          LIBRARIES=""
+          
+          # Add all JAR files from .gradle directory as libraries
+          for jar in $(find ~/.gradle -name "*.jar"); do
+            if [ -z "$LIBRARIES" ]; then
+              LIBRARIES="$jar"
+            else
+              LIBRARIES="$LIBRARIES,$jar"
+            fi
+          done
           
           for dir in project/backend/*/; do
             service_name=$(basename "$dir")
+            
+            # Add sources
             if [ -d "$dir/src/main/java" ]; then
               if [ -z "$SOURCES" ]; then
                 SOURCES="project/backend/$service_name/src/main/java"
@@ -128,6 +201,7 @@ jobs:
               fi
             fi
             
+            # Add tests
             if [ -d "$dir/src/test/java" ]; then
               if [ -z "$TESTS" ]; then
                 TESTS="project/backend/$service_name/src/test/java"
@@ -136,6 +210,7 @@ jobs:
               fi
             fi
             
+            # Add binaries
             if [ -d "$dir/build/classes/java/main" ]; then
               if [ -z "$BINARIES" ]; then
                 BINARIES="project/backend/$service_name/build/classes/java/main"
@@ -144,6 +219,7 @@ jobs:
               fi
             fi
             
+            # Add test binaries
             if [ -d "$dir/build/classes/java/test" ]; then
               if [ -z "$TEST_BINARIES" ]; then
                 TEST_BINARIES="project/backend/$service_name/build/classes/java/test"
@@ -152,6 +228,7 @@ jobs:
               fi
             fi
             
+            # Add JaCoCo reports
             if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
               if [ -z "$JACOCO_REPORTS" ]; then
                 JACOCO_REPORTS="project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
@@ -159,6 +236,15 @@ jobs:
                 JACOCO_REPORTS="$JACOCO_REPORTS,project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
               fi
             fi
+            
+            # Add local libraries from each project
+            for jar in $(find "$dir/build/libs" -name "*.jar" 2>/dev/null); do
+              if [ -z "$LIBRARIES" ]; then
+                LIBRARIES="$jar"
+              else
+                LIBRARIES="$LIBRARIES,$jar"
+              fi
+            done
           done
           
           echo "sources=$SOURCES" >> $GITHUB_OUTPUT
@@ -166,6 +252,7 @@ jobs:
           echo "binaries=$BINARIES" >> $GITHUB_OUTPUT
           echo "test_binaries=$TEST_BINARIES" >> $GITHUB_OUTPUT
           echo "jacoco_reports=$JACOCO_REPORTS" >> $GITHUB_OUTPUT
+          echo "libraries=$LIBRARIES" >> $GITHUB_OUTPUT
       
       - name: SonarCloud Scan
         if: success() || failure()  # Run even if previous step failed
@@ -173,16 +260,17 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors
             -Dsonar.organization=learnathon-by-geeky-solutions
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
             -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
             -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
             -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
+            -Dsonar.java.libraries=${{ steps.sonar-params.outputs.libraries }}
             -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
+            -Dsonar.verbose=true
+            -Dsonar.coverage.exclusions=**/model/**,**/dto/**,**/config/**,**/exception/**
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-#added a comment to test the sonarcloud.yml file
