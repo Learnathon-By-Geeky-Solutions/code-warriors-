@@ -23,6 +23,7 @@ import java.util.Map;
 public class PlayerController {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerController.class);
+    private static final String KEY_SUCCESS = "success"; 
 
     private final GameSessionService gameSessionService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -45,11 +46,12 @@ public class PlayerController {
         if (roomId == null || roomId.isEmpty()) {
             logger.warn("Room creation attempt with invalid roomId.");
             Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
+            response.put(KEY_SUCCESS, false);
             response.put("message", "Invalid roomId");
             messagingTemplate.convertAndSend("/queue/roomCreated", response);
             return;
         }
+
         // Create room if it doesn't exist
         if (!gameSessionService.roomExists(roomId)) {
             gameSessionService.createRoom(roomId);
@@ -57,9 +59,10 @@ public class PlayerController {
         } else {
             logger.info("Room already exists; no action taken.");
         }
+
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
-        response.put("success", true);
+        response.put(KEY_SUCCESS, true);
         messagingTemplate.convertAndSend("/queue/roomCreated", response);
     }
 
@@ -77,7 +80,7 @@ public class PlayerController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
-        response.put("success", true);
+        response.put(KEY_SUCCESS, true);
         logger.info("User joining room."); // Generic log; avoid showing username or roomId
         messagingTemplate.convertAndSend("/queue/joinResult", response);
     }
@@ -92,6 +95,7 @@ public class PlayerController {
             logger.warn("Player registration attempted for non-existent room.");
             return;
         }
+
         // Check if player already exists in the room
         Player existing = gameSessionService.getPlayerById(incoming.getRoomId(), incoming.getId());
         if (existing != null) {
@@ -100,10 +104,12 @@ public class PlayerController {
             broadcastPlayerStates(incoming.getRoomId());
             return;
         }
+
         // Use SpawnPointService to retrieve spawn coordinates
         double[] spawnCoords = spawnPointService.getSpawnCoordinates();
         incoming.setX(spawnCoords[0]);
         incoming.setY(spawnCoords[1]);
+
         logger.info("New player registered in room; spawn coordinates set.");
         gameSessionService.addPlayer(incoming);
         broadcastPlayerStates(incoming.getRoomId());
@@ -113,6 +119,7 @@ public class PlayerController {
     public void movePlayer(@Payload Player playerMovement) {
         logger.info("Processing movement for a player.");
         Player existingPlayer = gameSessionService.getPlayerById(playerMovement.getRoomId(), playerMovement.getId());
+
         if (existingPlayer != null) {
             existingPlayer.setX(playerMovement.getX());
             existingPlayer.setY(playerMovement.getY());
@@ -130,10 +137,12 @@ public class PlayerController {
     public void leaveRoom(@Payload LeaveRoomRequest request) {
         String roomId = request.getRoomId();
         String playerId = request.getPlayerId();
+
         if (roomId == null || playerId == null) {
             logger.warn("Invalid leaveRoom payload received.");
             return;
         }
+
         logger.info("Processing request to remove a player from a room.");
         gameSessionService.removePlayer(roomId, playerId);
         broadcastPlayerStates(roomId);
