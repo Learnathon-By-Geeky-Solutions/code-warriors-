@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react"
-import { AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import documentFileService from "@/services/documentFileService"
-import axios from "axios"
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import documentFileService from "@/services/documentFileService";
+import axios from "axios";
 
 interface CodeViewerProps {
-  docId: string
-  fileName: string
-  storedFileName: string
+  docId: string;
+  fileName: string;
+  storedFileName: string;
 }
 
 const getLanguage = (fileName: string): string => {
-  const extension = fileName.toLowerCase().split(".").pop() || ""
+  const extension = fileName.toLowerCase().split(".").pop() || "";
   const languageMap: { [key: string]: string } = {
     py: "python",
     js: "javascript",
@@ -27,29 +27,29 @@ const getLanguage = (fileName: string): string => {
     rs: "rust",
     html: "html",
     css: "css",
-  }
-  return languageMap[extension] || "plaintext"
-}
+  };
+  return languageMap[extension] || "plaintext";
+};
 
 export function CodeViewer({ docId, fileName, storedFileName }: CodeViewerProps) {
-  const [code, setCode] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<{ message: string; isAuth?: boolean } | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-  const language = getLanguage(fileName)
-  const codeRef = useRef<HTMLElement>(null)
-  const [isPrismLoaded, setIsPrismLoaded] = useState(false)
-  const [geminiResponse, setGeminiResponse] = useState<string | null>(null)
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [errorPositions, setErrorPositions] = useState<number[]>([])
+  const [code, setCode] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<{ message: string; isAuth?: boolean } | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const language = getLanguage(fileName);
+  const codeRef = useRef<HTMLElement>(null);
+  const [isPrismLoaded, setIsPrismLoaded] = useState(false);
+  const [geminiResponse, setGeminiResponse] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [errorPositions, setErrorPositions] = useState<number[]>([]);
 
   const handleSelection = useCallback(async () => {
-    const selectedText = window.getSelection()?.toString().trim()
+    const selectedText = window.getSelection()?.toString().trim();
     if (selectedText) {
       try {
-        // Process Gemini API
-        const apiKeyGemini = "AIzaSyC6WC7v6rYTZmKXe6uLyWo86xSb76vJqY8"
-        const geminiResponse = await axios.post(
+        // Process Gemini API using environment variable key
+        const apiKeyGemini = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        const geminiRes = await axios.post(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKeyGemini}`,
           {
             contents: [
@@ -71,42 +71,40 @@ export function CodeViewer({ docId, fileName, storedFileName }: CodeViewerProps)
               "Content-Type": "application/json",
             },
           }
-        )
+        );
 
         const geminiText =
-          geminiResponse?.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-          "No response from Gemini."
-        setGeminiResponse(geminiText)
+          geminiRes?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from Gemini.";
+        setGeminiResponse(geminiText);
 
-        // Process Google Serper API
-        const serperResponse = await axios.post(
+        // Process Google Serper API using environment variable key for Serper
+        const serperApiKey = process.env.NEXT_PUBLIC_SERPER_API_KEY;
+        const serperRes = await axios.post(
           "https://google.serper.dev/search",
           { q: selectedText },
           {
             headers: {
-              "X-API-KEY": "b9775ca418fb76d4257f7ee35dd8aefdca62fde7",
+              "X-API-KEY": serperApiKey || "",
               "Content-Type": "application/json",
             },
           }
-        )
-        console.log(JSON.stringify(serperResponse.data));
-        setSearchResults(serperResponse?.data?.organic);
-        console.log(serperResponse?.data?.organic);
+        );
+        console.log(JSON.stringify(serperRes.data));
+        setSearchResults(serperRes?.data?.organic);
+        console.log(serperRes?.data?.organic);
       } catch (error) {
-        console.error("API Error:", error)
-        setGeminiResponse("Failed to analyze code. Please try again.")
-        setSearchResults([])
+        console.error("API Error:", error);
+        setGeminiResponse("Failed to analyze code. Please try again.");
+        setSearchResults([]);
       }
     }
-  }, [])
-
-  
+  }, []);
 
   const highlightCode = useCallback(async () => {
-    if (!code || !codeRef.current) return
+    if (!code || !codeRef.current) return;
 
     try {
-      const Prism = (await import("prismjs")).default
+      const Prism = (await import("prismjs")).default;
       await Promise.all([
         import("prismjs/components/prism-python"),
         import("prismjs/components/prism-javascript"),
@@ -118,80 +116,80 @@ export function CodeViewer({ docId, fileName, storedFileName }: CodeViewerProps)
         import("prismjs/components/prism-java"),
         import("prismjs/components/prism-go"),
         import("prismjs/components/prism-rust"),
-      ])
+      ]);
 
       if (codeRef.current) {
-        codeRef.current.className = `language-${language}`
-        Prism.highlightElement(codeRef.current)
+        codeRef.current.className = `language-${language}`;
+        Prism.highlightElement(codeRef.current);
       }
-      setIsPrismLoaded(true)
+      setIsPrismLoaded(true);
     } catch (error) {
-      console.error("Error initializing Prism:", error)
+      console.error("Error initializing Prism:", error);
     }
-  }, [code, language])
+  }, [code, language]);
 
   const loadCode = useCallback(async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      const blob = await documentFileService.downloadResource(storedFileName)
-      const text = await blob.text()
-      setCode(text)
+      setIsLoading(true);
+      setError(null);
+      const blob = await documentFileService.downloadResource(storedFileName);
+      const text = await blob.text();
+      setCode(text);
     } catch (error: any) {
-      console.error("Error loading code:", error)
+      console.error("Error loading code:", error);
       if (error?.response?.status === 401) {
         setError({
           message: "You don't have permission to view this file. Please check your access rights.",
           isAuth: true,
-        })
+        });
       } else if (error?.response?.status === 503) {
         setError({
           message: "Service is temporarily unavailable. Please try again later.",
           isAuth: false,
-        })
+        });
       } else if (error instanceof Error) {
-        setError({ message: error.message })
+        setError({ message: error.message });
       } else {
-        setError({ message: "Failed to load file. Please try again." })
+        setError({ message: "Failed to load file. Please try again." });
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [storedFileName])
+  }, [storedFileName]);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
     const attemptLoad = async () => {
       try {
-        await loadCode()
+        await loadCode();
       } catch (error) {
         if (mounted && retryCount < 3 && !error?.response?.status === 401) {
-          const timeout = Math.pow(2, retryCount) * 10000
+          const timeout = Math.pow(2, retryCount) * 10000;
           setTimeout(() => {
-            setRetryCount((prev) => prev + 1)
-          }, timeout)
+            setRetryCount((prev) => prev + 1);
+          }, timeout);
         }
       }
-    }
+    };
 
-    attemptLoad()
+    attemptLoad();
 
     return () => {
-      mounted = false
-    }
-  }, [loadCode, retryCount])
+      mounted = false;
+    };
+  }, [loadCode, retryCount]);
 
   useEffect(() => {
     if (code) {
-      highlightCode()
+      highlightCode();
     }
-  }, [code, highlightCode])
+  }, [code, highlightCode]);
 
   const handleRetry = () => {
-    setRetryCount(0)
-    loadCode()
-  }
+    setRetryCount(0);
+    loadCode();
+  };
 
   if (error) {
     return (
@@ -216,7 +214,7 @@ export function CodeViewer({ docId, fileName, storedFileName }: CodeViewerProps)
           )}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -332,5 +330,5 @@ export function CodeViewer({ docId, fileName, storedFileName }: CodeViewerProps)
         }
       `}</style>
     </div>
-  )
+  );
 }
