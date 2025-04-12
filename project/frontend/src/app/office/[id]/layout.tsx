@@ -71,25 +71,27 @@ const processScreenData = async (file: File, userId: string, officeId: string) =
     const labelingFormData = new FormData();
     labelingFormData.append("image", file);
     
+    // Retrieve API key from environment variable
+    const labelingApiKey = process.env.NEXT_PUBLIC_IMAGE_LABELING_API_KEY;
     const labelingRes = await fetch("https://api.apilayer.com/image_labeling/upload", {
       method: "POST",
-      headers: { apikey: "v5OivDY0xluMAYwI0mCySzaPcOItUVR8" },
+      headers: { apikey: labelingApiKey || "" },
       body: labelingFormData,
     });
     
     const labelingData = await labelingRes.json();
 
-    // Text extraction
+    // Text extraction using Tesseract.js
     const worker = await createWorker("eng");
     const { data: { text } } = await worker.recognize(URL.createObjectURL(file));
     await worker.terminate();
 
     // Gemini processing
-    const apiKeyGemini = "AIzaSyC6WC7v6rYTZmKXe6uLyWo86xSb76vJqY8";
+    const geminiApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     const prompt = `Labeling Data: ${JSON.stringify(labelingData)}\nExtracted Text: ${text}\nSummarize activity in 3 lines:`;
     
     const geminiRes = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKeyGemini}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
       { contents: [{ parts: [{ text: prompt }] }] }
     );
     
@@ -115,31 +117,21 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
 
   // useEffect(() => {
   //   let intervalId: NodeJS.Timeout;
-
   //   const executeTracking = async () => {
   //     try {
-  //       // Capture and send face photo
-  //       const photo = await capturePhoto();
-  //       // if (photo) {
-  //       //   await faceTrackingService.trackFace({ officeId, image: photo });
-  //       // }
-
   //       // Capture and process screenshot
   //       const screenshot = await captureScreenshot();
   //       if (screenshot && user?.sub) {
   //         await processScreenData(screenshot, user.sub, officeId);
   //       }
-
   //     } catch (error) {
   //       console.error("Tracking error:", error);
   //     }
   //   };
-
   //   if (officeId && user) {
   //     executeTracking(); // Initial execution
   //     intervalId = setInterval(executeTracking, 30 * 60 * 1000); // 30 minute interval
   //   }
-
   //   return () => clearInterval(intervalId);
   // }, [officeId, user]);
 
