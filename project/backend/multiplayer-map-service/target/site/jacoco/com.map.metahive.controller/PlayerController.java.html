@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">MetaHive</a> &gt; <a href="index.source.html" class="el_package">com.map.metahive.controller</a> &gt; <span class="el_source">PlayerController.java</span></div><h1>PlayerController.java</h1><pre class="source lang-java linenums">package com.map.metahive.controller;
+
+import com.map.metahive.dto.CreateRoomRequest;
+import com.map.metahive.dto.JoinRoomRequest;
+import com.map.metahive.dto.LeaveRoomRequest;
+import com.map.metahive.model.Player;
+import com.map.metahive.model.Room;
+import com.map.metahive.service.GameSessionService;
+import com.map.metahive.service.SpawnPointService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Controller
+public class PlayerController {
+
+<span class="fc" id="L25">    private static final Logger logger = LoggerFactory.getLogger(PlayerController.class);</span>
+    private static final String KEY_SUCCESS = &quot;success&quot;;
+
+    private final GameSessionService gameSessionService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final SpawnPointService spawnPointService;
+
+    @Autowired
+    public PlayerController(GameSessionService gameSessionService,
+                            SimpMessagingTemplate messagingTemplate,
+<span class="fc" id="L35">                            SpawnPointService spawnPointService) {</span>
+<span class="fc" id="L36">        this.gameSessionService = gameSessionService;</span>
+<span class="fc" id="L37">        this.messagingTemplate = messagingTemplate;</span>
+<span class="fc" id="L38">        this.spawnPointService = spawnPointService;</span>
+<span class="fc" id="L39">    }</span>
+
+    @MessageMapping(&quot;/createRoom&quot;)
+    public void createRoom(@Payload CreateRoomRequest request) {
+        // Removed the unused assignment to &quot;username&quot;
+<span class="fc" id="L44">        String roomId = request.getRoomId();</span>
+
+<span class="pc bpc" id="L46" title="1 of 4 branches missed.">        if (roomId == null || roomId.isEmpty()) {</span>
+<span class="fc" id="L47">            logger.warn(&quot;Room creation attempt with invalid roomId.&quot;);</span>
+<span class="fc" id="L48">            Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L49">            response.put(KEY_SUCCESS, false);</span>
+<span class="fc" id="L50">            response.put(&quot;message&quot;, &quot;Invalid roomId&quot;);</span>
+<span class="fc" id="L51">            messagingTemplate.convertAndSend(&quot;/queue/roomCreated&quot;, response);</span>
+<span class="fc" id="L52">            return;</span>
+        }
+
+        // Create room if it doesn't exist
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (!gameSessionService.roomExists(roomId)) {</span>
+<span class="fc" id="L57">            gameSessionService.createRoom(roomId);</span>
+<span class="fc" id="L58">            logger.info(&quot;Room created successfully.&quot;);</span>
+        } else {
+<span class="nc" id="L60">            logger.info(&quot;Room already exists; no action taken.&quot;);</span>
+        }
+
+<span class="fc" id="L63">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L64">        response.put(&quot;roomId&quot;, roomId);</span>
+<span class="fc" id="L65">        response.put(KEY_SUCCESS, true);</span>
+<span class="fc" id="L66">        messagingTemplate.convertAndSend(&quot;/queue/roomCreated&quot;, response);</span>
+<span class="fc" id="L67">    }</span>
+
+    @MessageMapping(&quot;/joinRoom&quot;)
+    public void joinRoom(SimpMessageHeaderAccessor headerAccessor, @Payload JoinRoomRequest request) {
+<span class="fc" id="L71">        String username = request.getUsername();</span>
+<span class="fc" id="L72">        String roomId = request.getRoomId();</span>
+
+        // If room does not exist, create one
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (!gameSessionService.roomExists(roomId)) {</span>
+<span class="fc" id="L76">            logger.info(&quot;Room not found; creating a new room.&quot;);</span>
+<span class="fc" id="L77">            Room newRoom = new Room(roomId);</span>
+<span class="fc" id="L78">            gameSessionService.addRoom(roomId, newRoom);</span>
+        }
+
+<span class="fc" id="L81">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L82">        response.put(&quot;roomId&quot;, roomId);</span>
+<span class="fc" id="L83">        response.put(KEY_SUCCESS, true);</span>
+<span class="fc" id="L84">        logger.info(&quot;User joining room.&quot;); // Generic log; avoid showing username or roomId</span>
+<span class="fc" id="L85">        messagingTemplate.convertAndSend(&quot;/queue/joinResult&quot;, response);</span>
+<span class="fc" id="L86">    }</span>
+
+    @MessageMapping(&quot;/register&quot;)
+    public void registerPlayer(@Payload Player incoming) {
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">        if (incoming.getId() == null || incoming.getId().isEmpty()) {</span>
+<span class="nc" id="L91">            logger.warn(&quot;Player registration attempt with invalid ID.&quot;);</span>
+<span class="nc" id="L92">            return;</span>
+        }
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (!gameSessionService.roomExists(incoming.getRoomId())) {</span>
+<span class="nc" id="L95">            logger.warn(&quot;Player registration attempted for non-existent room.&quot;);</span>
+<span class="nc" id="L96">            return;</span>
+        }
+
+        // Check if player already exists in the room
+<span class="fc" id="L100">        Player existing = gameSessionService.getPlayerById(incoming.getRoomId(), incoming.getId());</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (existing != null) {</span>
+<span class="fc" id="L102">            logger.info(&quot;Player already exists; updating username if needed.&quot;);</span>
+<span class="fc" id="L103">            existing.setUsername(incoming.getUsername());</span>
+<span class="fc" id="L104">            broadcastPlayerStates(incoming.getRoomId());</span>
+<span class="fc" id="L105">            return;</span>
+        }
+
+        // Use SpawnPointService to retrieve spawn coordinates
+<span class="fc" id="L109">        double[] spawnCoords = spawnPointService.getSpawnCoordinates();</span>
+<span class="fc" id="L110">        incoming.setX(spawnCoords[0]);</span>
+<span class="fc" id="L111">        incoming.setY(spawnCoords[1]);</span>
+
+<span class="fc" id="L113">        logger.info(&quot;New player registered in room; spawn coordinates set.&quot;);</span>
+<span class="fc" id="L114">        gameSessionService.addPlayer(incoming);</span>
+<span class="fc" id="L115">        broadcastPlayerStates(incoming.getRoomId());</span>
+<span class="fc" id="L116">    }</span>
+
+    @MessageMapping(&quot;/move&quot;)
+    public void movePlayer(@Payload Player playerMovement) {
+<span class="fc" id="L120">        logger.info(&quot;Processing movement for a player.&quot;);</span>
+<span class="fc" id="L121">        Player existingPlayer = gameSessionService.getPlayerById(playerMovement.getRoomId(), playerMovement.getId());</span>
+
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        if (existingPlayer != null) {</span>
+<span class="fc" id="L124">            existingPlayer.setX(playerMovement.getX());</span>
+<span class="fc" id="L125">            existingPlayer.setY(playerMovement.getY());</span>
+<span class="fc" id="L126">            existingPlayer.setDirection(playerMovement.getDirection());</span>
+<span class="fc" id="L127">            existingPlayer.setIsMoving(playerMovement.getIsMoving());</span>
+<span class="fc" id="L128">            existingPlayer.setAnimation(playerMovement.getAnimation());</span>
+<span class="fc" id="L129">            existingPlayer.setTimestamp(playerMovement.getTimestamp());</span>
+<span class="fc" id="L130">            broadcastPlayerStates(playerMovement.getRoomId());</span>
+        } else {
+<span class="fc" id="L132">            logger.warn(&quot;Player movement received for non-existent player.&quot;);</span>
+        }
+<span class="fc" id="L134">    }</span>
+
+    @MessageMapping(&quot;/leaveRoom&quot;)
+    public void leaveRoom(@Payload LeaveRoomRequest request) {
+<span class="fc" id="L138">        String roomId = request.getRoomId();</span>
+<span class="fc" id="L139">        String playerId = request.getPlayerId();</span>
+
+<span class="pc bpc" id="L141" title="2 of 4 branches missed.">        if (roomId == null || playerId == null) {</span>
+<span class="nc" id="L142">            logger.warn(&quot;Invalid leaveRoom payload received.&quot;);</span>
+<span class="nc" id="L143">            return;</span>
+        }
+
+<span class="fc" id="L146">        logger.info(&quot;Processing request to remove a player from a room.&quot;);</span>
+<span class="fc" id="L147">        gameSessionService.removePlayer(roomId, playerId);</span>
+<span class="fc" id="L148">        broadcastPlayerStates(roomId);</span>
+<span class="fc" id="L149">    }</span>
+
+    private void broadcastPlayerStates(String roomId) {
+<span class="fc" id="L152">        Map&lt;String, Player&gt; players = gameSessionService.getPlayersInRoom(roomId);</span>
+<span class="fc" id="L153">        logger.info(&quot;Broadcasting updated player state for room.&quot;);</span>
+<span class="fc" id="L154">        messagingTemplate.convertAndSend(&quot;/topic/rooms/&quot; + roomId + &quot;/players&quot;, players);</span>
+<span class="fc" id="L155">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

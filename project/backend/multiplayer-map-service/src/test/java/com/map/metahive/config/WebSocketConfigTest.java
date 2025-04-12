@@ -4,13 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.SockJsServiceRegistration;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.SockJsServiceRegistration;
 import org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -34,30 +32,35 @@ public class WebSocketConfigTest {
 
     @Test
     public void testRegisterStompEndpoints() {
+        // Create a mock for the endpoint registry.
         StompEndpointRegistry registry = mock(StompEndpointRegistry.class);
-        // Use the new type from Spring 6:
+
+        // Create a mock for the registration returned by addEndpoint(...).
         StompWebSocketEndpointRegistration registration = mock(StompWebSocketEndpointRegistration.class);
+        // Create a separate mock for what withSockJS() returns.
+        SockJsServiceRegistration sockJsServiceRegistration = mock(SockJsServiceRegistration.class);
 
-        // For methods with varargs, use any(String[].class) as the matcher
-        when(registry.addEndpoint(any(String[].class))).thenReturn(registration);
-        when(registration.setAllowedOriginPatterns(any(String[].class))).thenReturn(registration);
-        when(registration.withSockJS()).thenReturn((SockJsServiceRegistration) registration);
+        // For varargs methods, use explicit cast with any() matcher.
+        when(registry.addEndpoint((String[]) any())).thenReturn(registration);
+        when(registration.setAllowedOriginPatterns((String[]) any())).thenReturn(registration);
+        when(registration.withSockJS()).thenReturn(sockJsServiceRegistration);
 
+        // Execute the method under test.
         webSocketConfig.registerStompEndpoints(registry);
 
-        // Capture and verify the endpoints registered
-        ArgumentCaptor<String[]> captor = ArgumentCaptor.forClass(String[].class);
-        verify(registry).addEndpoint(captor.capture());
-        String[] endpoints = captor.getValue();
+        // Verify that addEndpoint was called with "/ws"
+        ArgumentCaptor<String[]> endpointCaptor = ArgumentCaptor.forClass(String[].class);
+        verify(registry).addEndpoint(endpointCaptor.capture());
+        String[] endpoints = endpointCaptor.getValue();
         assertThat(endpoints).containsExactly("/ws");
 
-        // Capture and verify the allowed origin patterns
-        ArgumentCaptor<String[]> captorOrigins = ArgumentCaptor.forClass(String[].class);
-        verify(registration).setAllowedOriginPatterns(captorOrigins.capture());
-        String[] origins = captorOrigins.getValue();
+        // Verify that setAllowedOriginPatterns was called with "*"
+        ArgumentCaptor<String[]> originCaptor = ArgumentCaptor.forClass(String[].class);
+        verify(registration).setAllowedOriginPatterns(originCaptor.capture());
+        String[] origins = originCaptor.getValue();
         assertThat(origins).containsExactly("*");
 
-        // Verify SockJS was enabled.
+        // Verify that withSockJS() was called.
         verify(registration).withSockJS();
     }
 }
