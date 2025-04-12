@@ -23,7 +23,7 @@ import java.util.Map;
 public class PlayerController {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerController.class);
-    private static final String KEY_SUCCESS = "success"; 
+    private static final String KEY_SUCCESS = "success";
 
     private final GameSessionService gameSessionService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -40,7 +40,7 @@ public class PlayerController {
 
     @MessageMapping("/createRoom")
     public void createRoom(@Payload CreateRoomRequest request) {
-        String username = request.getUsername();
+        // Removed the unused assignment to "username"
         String roomId = request.getRoomId();
 
         if (roomId == null || roomId.isEmpty()) {
