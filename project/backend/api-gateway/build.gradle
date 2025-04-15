@@ -43,3 +43,9 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+task printRuntimeClasspath {
+	doLast {
+		println sourceSets.main.runtimeClasspath.asPath
+	}
+}

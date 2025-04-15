@@ -22,7 +22,8 @@ jobs:
       
       - name: Make all gradlew files executable
         run: |
-          find project/backend -name "gradlew" -type f -exec chmod +x {} \;
+         find project/backend -name "gradlew" -type f -exec chmod +x {} \; || true
+
       
       - name: Cache Gradle packages
         uses: actions/cache@v3
@@ -111,76 +112,94 @@ jobs:
       - name: Prepare SonarCloud parameters
         id: sonar-params
         run: |
-          # Collect all the source directories without wildcards
-          SOURCES=""
-          TESTS=""
-          BINARIES=""
-          TEST_BINARIES=""
-          JACOCO_REPORTS=""
-          
-          for dir in project/backend/*/; do
-            service_name=$(basename "$dir")
-            if [ -d "$dir/src/main/java" ]; then
-              if [ -z "$SOURCES" ]; then
-                SOURCES="project/backend/$service_name/src/main/java"
-              else
-                SOURCES="$SOURCES,project/backend/$service_name/src/main/java"
+            # Collect all the source directories without wildcards
+            SOURCES=""
+            TESTS=""
+            BINARIES=""
+            TEST_BINARIES=""
+            JACOCO_REPORTS=""
+            LIBRARIES=""
+  
+            for dir in project/backend/*/; do
+              service_name=$(basename "$dir")
+              if [ -d "$dir/src/main/java" ]; then
+                if [ -z "$SOURCES" ]; then
+                  SOURCES="project/backend/$service_name/src/main/java"
+                else
+                  SOURCES="$SOURCES,project/backend/$service_name/src/main/java"
+                fi
               fi
-            fi
-            
-            if [ -d "$dir/src/test/java" ]; then
-              if [ -z "$TESTS" ]; then
-                TESTS="project/backend/$service_name/src/test/java"
-              else
-                TESTS="$TESTS,project/backend/$service_name/src/test/java"
+  
+              if [ -d "$dir/src/test/java" ]; then
+                if [ -z "$TESTS" ]; then
+                  TESTS="project/backend/$service_name/src/test/java"
+                else
+                  TESTS="$TESTS,project/backend/$service_name/src/test/java"
+                fi
               fi
-            fi
-            
-            if [ -d "$dir/build/classes/java/main" ]; then
-              if [ -z "$BINARIES" ]; then
-                BINARIES="project/backend/$service_name/build/classes/java/main"
-              else
-                BINARIES="$BINARIES,project/backend/$service_name/build/classes/java/main"
+  
+              if [ -d "$dir/build/classes/java/main" ]; then
+                if [ -z "$BINARIES" ]; then
+                  BINARIES="project/backend/$service_name/build/classes/java/main"
+                else
+                  BINARIES="$BINARIES,project/backend/$service_name/build/classes/java/main"
+                fi
               fi
-            fi
-            
-            if [ -d "$dir/build/classes/java/test" ]; then
-              if [ -z "$TEST_BINARIES" ]; then
-                TEST_BINARIES="project/backend/$service_name/build/classes/java/test"
-              else
-                TEST_BINARIES="$TEST_BINARIES,project/backend/$service_name/build/classes/java/test"
+  
+              if [ -d "$dir/build/classes/java/test" ]; then
+                if [ -z "$TEST_BINARIES" ]; then
+                  TEST_BINARIES="project/backend/$service_name/build/classes/java/test"
+                else
+                  TEST_BINARIES="$TEST_BINARIES,project/backend/$service_name/build/classes/java/test"
+                fi
               fi
-            fi
-            
-            if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-              if [ -z "$JACOCO_REPORTS" ]; then
-                JACOCO_REPORTS="project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
-              else
-                JACOCO_REPORTS="$JACOCO_REPORTS,project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
+  
+              if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+                if [ -z "$JACOCO_REPORTS" ]; then
+                  JACOCO_REPORTS="project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
+                else
+                  JACOCO_REPORTS="$JACOCO_REPORTS,project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
+                fi
               fi
-            fi
-          done
-          
-          echo "sources=$SOURCES" >> $GITHUB_OUTPUT
-          echo "tests=$TESTS" >> $GITHUB_OUTPUT
-          echo "binaries=$BINARIES" >> $GITHUB_OUTPUT
-          echo "test_binaries=$TEST_BINARIES" >> $GITHUB_OUTPUT
-          echo "jacoco_reports=$JACOCO_REPORTS" >> $GITHUB_OUTPUT
+  
+              if [ -f "$dir/gradlew" ]; then
+                runtime_jars=$(cd "$dir" && ./gradlew printRuntimeClasspath -q)
+                for jar in $(echo "$runtime_jars" | tr ':' '\n'); do
+                  if [ -f "$jar" ]; then
+                    if [ -z "$LIBRARIES" ]; then
+                      LIBRARIES="$jar"
+                    else
+                      LIBRARIES="$LIBRARIES,$jar"
+                    fi
+                  fi
+                done
+              fi
+            done
+  
+            echo "sources=$SOURCES" >> $GITHUB_OUTPUT
+            echo "tests=$TESTS" >> $GITHUB_OUTPUT
+            echo "binaries=$BINARIES" >> $GITHUB_OUTPUT
+            echo "test_binaries=$TEST_BINARIES" >> $GITHUB_OUTPUT
+            echo "jacoco_reports=$JACOCO_REPORTS" >> $GITHUB_OUTPUT
+            echo "libraries=$LIBRARIES" >> $GITHUB_OUTPUT
+  
+            - name: SonarCloud Scan
+            if: success() || failure()  # Run even if previous step failed
+            uses: SonarSource/sonarcloud-github-action@v2.2.0
+            with:
+              projectBaseDir: .
+              args: >
+                -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
+                -Dsonar.organization=learnathon-by-geeky-solutions
+                -Dsonar.host.url=https://sonarcloud.io
+                -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
+                -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
+                -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
+                -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
+                -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
+                -Dsonar.java.libraries=${{ steps.sonar-params.outputs.libraries }}
+                    
       
-      - name: SonarCloud Scan
-        if: success() || failure()  # Run even if previous step failed
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
-            -Dsonar.organization=learnathon-by-geeky-solutions
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
-            -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
-            -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
-            -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
-            -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

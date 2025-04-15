@@ -78,3 +78,9 @@ tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 	options.compilerArgs += ['-parameters']
 }
+
+task printRuntimeClasspath {
+	doLast {
+		println sourceSets.main.runtimeClasspath.asPath
+	}
+}
