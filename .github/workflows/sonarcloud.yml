@@ -26,15 +26,17 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ hashFiles('project/backend/multiplayer-map-service/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build and Analyze Maven Project
         run: |
           echo "Building and analyzing Maven project..."
+          # Change to the Maven project directory
+          cd project/backend/multiplayer-map-service
           mvn clean verify sonar:sonar \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -DskipTests=true # Or remove if you want Maven to run its tests
+            -DskipTests=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
