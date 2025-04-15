@@ -71,7 +71,7 @@ jobs:
               -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.organization=learnathon-by-geeky-solutions \
-              -Dsonar.projectKey=learnathon-by-geeky-solutions_$(basename "$PROJECT_DIR") \
+              -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors- \
               -Dsonar.projectName=$(basename "$PROJECT_DIR") \
               -Dsonar.java.libraries="$(./gradlew dependencies --configuration compileClasspath | grep '-> ' | sed 's/.*-> //')" \
             )
