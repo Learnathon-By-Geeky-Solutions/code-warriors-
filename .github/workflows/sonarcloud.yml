@@ -64,6 +64,16 @@ jobs:
       - name: SonarCloud Scan (Gradle)
         run: |
           echo "Running SonarCloud analysis for Gradle projects..."
-          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec {} sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }} \;
+          # Add sonar.java.libraries to the Gradle SonarCloud analysis.
+          GRADLE_PROJECTS=$(find project/backend/ -name "build.gradle" -type f -not -path "project/backend/multiplayer-map-service*" -print0 | xargs -0 -n 1 dirname)
+          for PROJECT_DIR in $GRADLE_PROJECTS; do
+            echo "Analyzing Gradle project in $PROJECT_DIR"
+            (cd "$PROJECT_DIR" && ./gradlew sonarqube \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.java.libraries="$(./gradlew dependencies --configuration compileClasspath | grep '-> ' | sed 's/.*-> //')" \
+              -Dsonar.projectKey=$(basename "$PROJECT_DIR") \
+              -Dsonar.projectName=$(basename "$PROJECT_DIR") \
+            )
+          done
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
