@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco' // Added JaCoCo plugin
+	id 'org.sonarqube' version '4.4.1.3373' // Added SonarQube plugin
 }
 
 group = 'com.meta'
@@ -60,7 +62,51 @@ dependencyManagement {
 	}
 }
 
+jacoco {
+	toolVersion = "0.8.11" // Or use a more recent version like "0.8.12"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = false
+		csv.required = false
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					'**/config/**',
+					'**/exception/**',
+					'**/model/**',
+					'**/dto/**',
+					'**/Application*'
+			])
+		}))
+	}
+}
+
+sonarqube {
+	properties {
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-" // Make sure this is the correct key
+		property "sonar.organization", "learnathon-by-geeky-solutions" // Ensure this is your organization key
+		property "sonar.host.url", "https://sonarcloud.io"
+		// Remove sonar.login - pass token via command line or CI environment variable
+
+		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
+		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+	}
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 	jvmArgs = ["-javaagent:${configurations.testRuntimeClasspath.find { it.name.contains('byte-buddy-agent') }}"]
+	finalizedBy jacocoTestReport // Ensure JaCoCo report runs after tests
+}
+
+// The printRuntimeClasspath task is kept as it was in the old configuration
+task printRuntimeClasspath {
+	doLast {
+		println sourceSets.main.runtimeClasspath.asPath
+	}
 }

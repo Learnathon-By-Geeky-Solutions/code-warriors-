@@ -1,21 +1,19 @@
 plugins {
 	id 'java'
+	// Consider using a released Spring Boot version (e.g., 3.3.0 or 3.2.6) unless you specifically need 3.4.1 features
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco' // Added JaCoCo plugin
+	// Use a recent SonarQube plugin version
+	id 'org.sonarqube' version '4.4.1.3373' // Added SonarQube plugin
 }
 
-group = 'com.meta'
-version = '0.0.1-SNAPSHOT'
+group = 'com.meta' // Adjust if this service has a different group
+version = '0.0.1-SNAPSHOT' // Adjust if needed
 
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
 	}
 }
 
@@ -51,9 +49,9 @@ dependencies {
 	testImplementation 'io.rest-assured:json-path:5.4.0'
 	testImplementation 'io.rest-assured:xml-path:5.4.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	 testImplementation 'org.testcontainers:testcontainers:1.19.3'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
-    testImplementation 'org.testcontainers:mysql:1.19.3'
+	testImplementation 'org.testcontainers:testcontainers:1.19.3'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+	testImplementation 'org.testcontainers:mysql:1.19.3'
 }
 
 dependencyManagement {
@@ -63,18 +61,63 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+
+
+jacoco {
+	toolVersion = "0.8.11" // Set JaCoCo version
 }
 
-test {
-	testLogging {
-		events "passed", "skipped", "failed"
-		exceptionFormat = 'full'
+// ✅ JaCoCo test report configuration
+jacocoTestReport {
+	dependsOn test // Ensures tests run before reports are generated
+	reports {
+		xml.required = true  // Required for SonarCloud
+		html.required = false // Disable HTML report if not needed
+		csv.required = false  // Disable CSV report if not needed
+	}
+	// Define class/package exclusions for coverage report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					'**/config/**',       // Configuration classes
+					'**/exception/**',    // Custom exception classes
+					'**/model/**',       // Data models / entities (if any in gateway)
+					'**/dto/**',         // Data transfer objects (if any in gateway)
+					'**/Application*',    // Main application class
+					// Add specific Gateway/filter classes if they are trivial/untestable and should be excluded
+			])
+		}))
 	}
 }
 
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
-	options.compilerArgs += ['-parameters']
+// ✅ SonarQube (SonarCloud) configuration
+sonarqube {
+	properties {
+		// IMPORTANT: Set a UNIQUE project key if this is a SEPARATE project on SonarCloud
+		// Or use the SAME key if it's a MODULE within the main project.
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-" // CHANGE IF NEEDED
+		property "sonar.organization", "learnathon-by-geeky-solutions"
+		property "sonar.host.url", "https://sonarcloud.io"
+		// Remove sonar.login - Pass token via command line arg in CI (-Dsonar.login=...)
+
+		// Define coverage exclusions for SonarCloud reporting (mirror JaCoCo or adjust)
+		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
+
+		// Explicitly setting this is often redundant if JaCoCo plugin is applied correctly, but doesn't hurt
+		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+	}
 }
+
+// ✅ Test task configuration
+tasks.named('test', Test) { // Specify Test type
+	useJUnitPlatform()
+	// Add JVM args consistent with other services if needed for testing environment/libraries
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline" // If using Mockito inline mocking
+
+	finalizedBy jacocoTestReport // Hook JaCoCo report generation to run after tests finish
+}
+
+// Removed the custom print task as it's not needed for the final SonarCloud setup
+// task printRuntimeClasspath { ... }

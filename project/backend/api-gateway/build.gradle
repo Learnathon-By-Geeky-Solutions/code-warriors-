@@ -1,11 +1,15 @@
 plugins {
 	id 'java'
+	// Consider using a released Spring Boot version (e.g., 3.3.0 or 3.2.6) unless you specifically need 3.4.1 features
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco' // Added JaCoCo plugin
+	// Use a recent SonarQube plugin version
+	id 'org.sonarqube' version '4.4.1.3373' // Added SonarQube plugin
 }
 
-group = 'com.meta'
-version = '0.0.1-SNAPSHOT'
+group = 'com.meta' // Adjust if this service has a different group
+version = '0.0.1-SNAPSHOT' // Adjust if needed
 
 java {
 	toolchain {
@@ -18,6 +22,8 @@ repositories {
 }
 
 ext {
+	// Using Spring Cloud 2024.0.0 (Joplin), ensure compatibility with Boot 3.4.1 - check release notes.
+	// As of April 2025, stable versions like Boot 3.3.x/Cloud 2023.0.x or Boot 3.2.x/Cloud 2023.0.x might be preferred.
 	set('springCloudVersion', "2024.0.0")
 }
 
@@ -26,12 +32,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	// Check Springdoc version compatibility with Boot 3.4/Cloud 2024.0. Latest 2.x or 3.x might be needed.
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // Usually included via spring-boot-starter-test
 }
 
 dependencyManagement {
@@ -40,6 +47,61 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+jacoco {
+	toolVersion = "0.8.11" // Set JaCoCo version (0.8.12 is also available as of April 2025)
 }
+
+// ✅ JaCoCo test report configuration
+jacocoTestReport {
+	dependsOn test // Ensures tests run before reports are generated
+	reports {
+		xml.required = true  // Required for SonarCloud
+		html.required = false // Disable HTML report if not needed
+		csv.required = false  // Disable CSV report if not needed
+	}
+	// Define class/package exclusions for coverage report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					'**/config/**',       // Configuration classes
+					'**/exception/**',    // Custom exception classes
+					'**/model/**',       // Data models / entities (if any in gateway)
+					'**/dto/**',         // Data transfer objects (if any in gateway)
+					'**/Application*',    // Main application class
+					// Add specific Gateway/filter classes if they are trivial/untestable and should be excluded
+			])
+		}))
+	}
+}
+
+// ✅ SonarQube (SonarCloud) configuration
+sonarqube {
+	properties {
+		// IMPORTANT: Set a UNIQUE project key if this is a SEPARATE project on SonarCloud
+		// Or use the SAME key if it's a MODULE within the main project.
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-" // CHANGE IF NEEDED
+		property "sonar.organization", "learnathon-by-geeky-solutions"
+		property "sonar.host.url", "https://sonarcloud.io"
+		// Remove sonar.login - Pass token via command line arg in CI (-Dsonar.login=...)
+
+		// Define coverage exclusions for SonarCloud reporting (mirror JaCoCo or adjust)
+		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
+
+		// Explicitly setting this is often redundant if JaCoCo plugin is applied correctly, but doesn't hurt
+		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+	}
+}
+
+// ✅ Test task configuration
+tasks.named('test', Test) { // Specify Test type
+	useJUnitPlatform()
+	// Add JVM args consistent with other services if needed for testing environment/libraries
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline" // If using Mockito inline mocking
+
+	finalizedBy jacocoTestReport // Hook JaCoCo report generation to run after tests finish
+}
+
+// Removed the custom print task as it's not needed for the final SonarCloud setup
+// task printRuntimeClasspath { ... }
