@@ -36,6 +36,9 @@ jobs:
           cd project/backend/multiplayer-map-service
           mvn clean verify sonar:sonar \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=learnathon-by-geeky-solutions \
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors- \
             -DskipTests=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
