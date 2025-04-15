@@ -59,20 +59,21 @@ jobs:
       - name: Run Tests and Generate JaCoCo Reports (Gradle Modules)
         run: |
           echo "Running tests and generating JaCoCo reports for Gradle modules..."
-          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec {} test jacocoTestReport --info --continue \;
+          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec sh -c "cd \$(dirname {}); ./gradlew test jacocoTestReport --info --continue" \;
 
       - name: SonarCloud Scan (Gradle)
         run: |
           echo "Running SonarCloud analysis for Gradle projects..."
-          # Add sonar.java.libraries to the Gradle SonarCloud analysis.
           GRADLE_PROJECTS=$(find project/backend/ -name "build.gradle" -type f -not -path "project/backend/multiplayer-map-service*" -print0 | xargs -0 -n 1 dirname)
           for PROJECT_DIR in $GRADLE_PROJECTS; do
             echo "Analyzing Gradle project in $PROJECT_DIR"
             (cd "$PROJECT_DIR" && ./gradlew sonarqube \
               -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-              -Dsonar.java.libraries="$(./gradlew dependencies --configuration compileClasspath | grep '-> ' | sed 's/.*-> //')" \
-              -Dsonar.projectKey=$(basename "$PROJECT_DIR") \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.organization=learnathon-by-geeky-solutions \
+              -Dsonar.projectKey=learnathon-by-geeky-solutions_$(basename "$PROJECT_DIR") \
               -Dsonar.projectName=$(basename "$PROJECT_DIR") \
+              -Dsonar.java.libraries="$(./gradlew dependencies --configuration compileClasspath | grep '-> ' | sed 's/.*-> //')" \
             )
           done
         env:
