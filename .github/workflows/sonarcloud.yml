@@ -46,7 +46,7 @@ jobs:
       - name: Make Gradle files executable
         run: |
           echo "Making Gradle files executable..."
-          chmod +x project/backend/**/gradlew
+          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec chmod +x {} \;
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
@@ -59,12 +59,11 @@ jobs:
       - name: Run Tests and Generate JaCoCo Reports (Gradle Modules)
         run: |
           echo "Running tests and generating JaCoCo reports for Gradle modules..."
-          ./gradlew test jacocoTestReport --info --continue
+          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec {} test jacocoTestReport --info --continue \;
 
       - name: SonarCloud Scan (Gradle)
         run: |
           echo "Running SonarCloud analysis for Gradle projects..."
-          ./gradlew sonarqube \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          find project/backend/ -name "gradlew" -type f -not -path "project/backend/multiplayer-map-service*" -exec {} sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }} \;
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
