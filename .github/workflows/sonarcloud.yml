@@ -1,10 +1,12 @@
 name: SonarCloud Analysis
+
 on:
   push:
     branches:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
@@ -22,184 +24,60 @@ jobs:
 
       - name: Make all gradlew files executable
         run: |
-          find project/backend -name "gradlew" -type f -exec chmod +x {} \; || true
+          # Find gradlew recursively under project/backend and make executable
+          # Use find relative to the current directory '.' if needed
+          find project/backend -name "gradlew" -type f -exec chmod +x {} \; || echo "No gradlew found or error making executable, continuing..."
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
+          # Cache path relative to the runner's home directory
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle
+          # Key depends on build files across all modules
+          key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/gradle-wrapper.properties', 'project/backend/settings.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: Update JaCoCo configuration in build.gradle files
+      - name: Run Tests and Generate JaCoCo Reports (All Modules)
         run: |
-          for dir in project/backend/*/; do
-            if [ -f "$dir/build.gradle" ]; then
-              echo "Updating JaCoCo config in $dir/build.gradle"
-              # Backup the original file
-              cp "$dir/build.gradle" "$dir/build.gradle.bak"
+          echo "Running tests and generating JaCoCo reports for all services..."
+          # Assuming you have a root build.gradle/settings.gradle that includes modules in project/backend
+          # Run from the root directory where the main gradlew resides
+          ./gradlew test jacocoTestReport --info --continue
+          # OR If each service MUST be built independently (less ideal for unified Sonar):
+          # found_services=false
+          # for dir in project/backend/*/; do
+          #   if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
+          #     found_services=true
+          #     service_name=$(basename "$dir")
+          #     echo "Processing service: $service_name"
+          #     # Run from the service directory
+          #     (cd "$dir" && ./gradlew test jacocoTestReport --info --continue) || echo "WARNING: Build/Test for $service_name failed but continuing..."
+          #   fi
+          # done
+          # if [ "$found_services" = false ]; then
+          #   echo "No microservices with build.gradle and gradlew found in project/backend/"
+          #   exit 1
+          # fi
 
-              # Update JaCoCo version in build.gradle if it exists
-              sed -i 's/toolVersion = "0.8.8"/toolVersion = "0.8.11"/' "$dir/build.gradle"
-
-              # Add the exclusions to the jacocoTestReport block if not already present
-              if ! grep -q "afterEvaluate" "$dir/build.gradle"; then
-                # Find the end of jacocoTestReport block and add our exclusions
-                awk '
-                /jacocoTestReport {/,/}/ {
-                  if ($0 ~ /}/ && !found) {
-                    print "    afterEvaluate {";
-                    print "        classDirectories.setFrom(";
-                    print "            files(classDirectories.files.collect {";
-                    print "                fileTree(dir: it, excludes: [";
-                    print "                    \"**/config/**\",";
-                    print "                    \"**/exception/**\",";
-                    print "                    \"**/model/**\",";
-                    print "                    \"**/dto/**\",";
-                    print "                    \"jdk/**\",";
-                    print "                    \"sun/**\",";
-                    print "                    \"com/sun/**\",";
-                    print "                    \"java/**\"";
-                    print "                ])";
-                    print "            })";
-                    print "        )";
-                    print "    }";
-                    found=1;
-                  }
-                  print;
-                  next;
-                }
-                { print }
-                ' "$dir/build.gradle.bak" > "$dir/build.gradle"
-              fi
-
-              # Add JVM args to test task if needed
-              if ! grep -q "jvmArgs '--add-opens" "$dir/build.gradle"; then
-                sed -i '/tasks.named.test./,/}/ s/useJUnitPlatform()/useJUnitPlatform()\n    jvmArgs '"'"'--add-opens=java.base\/java.lang=ALL-UNNAMED'"'"'\n    jvmArgs '"'"'--add-opens=java.base\/java.util=ALL-UNNAMED'"'"'\n    systemProperty "mockito.mock.creation.default", "mock-maker-inline"/' "$dir/build.gradle"
-              fi
-            fi
-          done
-
-      - name: Run Tests and Generate JaCoCo Reports
-        run: |
-          echo "Running tests and generating JaCoCo reports for all services in project/backend/"
-          found_services=false
-
-          for dir in project/backend/*/; do
-            if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
-              found_services=true
-              service_name=$(basename "$dir")
-              echo "Processing service: $service_name"
-
-              (cd "$dir" && ./gradlew test jacocoTestReport --info) || {
-                echo "WARNING: Tests or JaCoCo report generation for $service_name failed"
-                # Continue with next service instead of failing immediately
-              }
-            fi
-          done
-
-          if [ "$found_services" = false ]; then
-            echo "No microservices with build.gradle and gradlew found in project/backend/"
-            exit 1
-          fi
-
-      - name: List generated JaCoCo reports
+      - name: List generated JaCoCo reports (for verification)
         run: |
           echo "Checking for generated JaCoCo reports..."
-          find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml" -ls
+          find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml" -ls || echo "No JaCoCo reports found."
 
-      - name: Prepare SonarCloud parameters
-        id: sonar-params
+      - name: SonarCloud Scan via Gradle
+        # Run this step even if tests failed in one module (--continue was used)
+        # to allow SonarCloud to report on successfully built modules and test results.
+        if: success() || failure()
         run: |
-          # Collect all the source directories without wildcards
-          SOURCES=""
-          TESTS=""
-          BINARIES=""
-          TEST_BINARIES=""
-          JACOCO_REPORTS=""
-          LIBRARIES=""
-
-          for dir in project/backend/*/; do
-            service_name=$(basename "$dir")
-            if [ -d "$dir/src/main/java" ]; then
-              if [ -z "$SOURCES" ]; then
-                SOURCES="project/backend/$service_name/src/main/java"
-              else
-                SOURCES="$SOURCES,project/backend/$service_name/src/main/java"
-              fi
-            fi
-
-            if [ -d "$dir/src/test/java" ]; then
-              if [ -z "$TESTS" ]; then
-                TESTS="project/backend/$service_name/src/test/java"
-              else
-                TESTS="$TESTS,project/backend/$service_name/src/test/java"
-              fi
-            fi
-
-            if [ -d "$dir/build/classes/java/main" ]; then
-              if [ -z "$BINARIES" ]; then
-                BINARIES="project/backend/$service_name/build/classes/java/main"
-              else
-                BINARIES="$BINARIES,project/backend/$service_name/build/classes/java/main"
-              fi
-            fi
-
-            if [ -d "$dir/build/classes/java/test" ]; then
-              if [ -z "$TEST_BINARIES" ]; then
-                TEST_BINARIES="project/backend/$service_name/build/classes/java/test"
-              else
-                TEST_BINARIES="$TEST_BINARIES,project/backend/$service_name/build/classes/java/test"
-              fi
-            fi
-
-            if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-              if [ -z "$JACOCO_REPORTS" ]; then
-                JACOCO_REPORTS="project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
-              else
-                JACOCO_REPORTS="$JACOCO_REPORTS,project/backend/$service_name/build/reports/jacoco/test/jacocoTestReport.xml"
-              fi
-            fi
-
-            if [ -f "$dir/gradlew" ]; then
-              runtime_jars=$(cd "$dir" && ./gradlew printRuntimeClasspath -q)
-              for jar in $(echo "$runtime_jars" | tr ':' '\n'); do
-                if [ -f "$jar" ]; then
-                  if [ -z "$LIBRARIES" ]; then
-                    LIBRARIES="$jar"
-                  else
-                    LIBRARIES="$LIBRARIES,$jar"
-                  fi
-                fi
-              done
-            fi
-          done
-
-          echo "sources=$SOURCES" >> $GITHUB_OUTPUT
-          echo "tests=$TESTS" >> $GITHUB_OUTPUT
-          echo "binaries=$BINARIES" >> $GITHUB_OUTPUT
-          echo "test_binaries=$TEST_BINARIES" >> $GITHUB_OUTPUT
-          echo "jacoco_reports=$JACOCO_REPORTS" >> $GITHUB_OUTPUT
-          echo "libraries=$LIBRARIES" >> $GITHUB_OUTPUT
-
-      - name: SonarCloud Scan
-        if: success() || failure()  # Run even if previous step failed
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
-            -Dsonar.organization=learnathon-by-geeky-solutions
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
-            -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
-            -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
-            -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
-            -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
-            -Dsonar.java.libraries=${{ steps.sonar-params.outputs.libraries }}
-
+          echo "Running SonarCloud analysis..."
+          # Run from the root directory where the main gradlew resides
+          # The SonarQube plugin aggregates results from modules defined in settings.gradle
+          ./gradlew sonarqube \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            --info
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # GITHUB_TOKEN is read implicitly by SonarScanner for PR decoration
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-#added a comment to test the sonarcloud.yml file
+          # SONAR_TOKEN is passed explicitly via -Dsonar.login
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

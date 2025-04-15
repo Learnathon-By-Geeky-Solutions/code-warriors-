@@ -1,7 +1,9 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
+	id 'org.springframework.boot' version '3.4.1' // Use a released version if possible, 3.3.0 or 3.2.x unless you need specific 3.4 features
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.sonarqube' version '4.4.1.3373' // Added SonarQube plugin
+	id 'jacoco' // Added JaCoCo plugin
 }
 
 group = 'com.meta'
@@ -20,21 +22,65 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.keycloak:keycloak-admin-client:24.0.1'
+	// testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // Usually included via spring-boot-starter-test
+
+	implementation 'org.keycloak:keycloak-admin-client:24.0.1' // Ensure compatibility with your Keycloak version
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
 	implementation 'org.projectlombok:lombok'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0' // Consider latest 2.x version (e.g., 2.5.0 for Boot 3.2/3.3 compatibility if needed)
 }
 
-tasks.named('test') {
+tasks.named('test', Test) { // Specify Test type for clarity
 	useJUnitPlatform()
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED' // Added JVM args directly
+	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline" // Added Mockito setting
+	finalizedBy jacocoTestReport // Ensure JaCoCo report runs after tests
 }
 
-task printRuntimeClasspath {
-	doLast {
-		println sourceSets.main.runtimeClasspath.asPath
+jacoco {
+	toolVersion = "0.8.11" // Set JaCoCo version directly
+}
+
+jacocoTestReport {
+	dependsOn test // Ensure tests run before report generation
+	reports {
+		xml.required = true  // SonarCloud needs the XML report
+		// html.required = true // Optional: for local viewing
+	}
+	// Define class exclusions for coverage report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					'**/config/**',
+					'**/exception/**',
+					'**/model/**',
+					'**/dto/**',
+					'**/Application*', // Often exclude main application class
+					// Add other packages/classes to exclude from coverage measurement if needed
+			])
+		}))
 	}
 }
 
+sonarqube {
+	properties {
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+		property "sonar.organization", "learnathon-by-geeky-solutions"
+		property "sonar.host.url", "https://sonarcloud.io"
+
+		// Coverage exclusions for SonarCloud (can mirror jacoco or be different)
+		// These prevent issues from being reported on excluded files
+		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
+
+		// The following are usually inferred correctly by the Gradle plugin,
+		// but can be uncommented and adjusted if necessary:
+		// property "sonar.sources", "src/main/java"
+		// property "sonar.tests", "src/test/java"
+		// property "sonar.java.binaries", "build/classes/java/main"
+		// property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+	}
+}
