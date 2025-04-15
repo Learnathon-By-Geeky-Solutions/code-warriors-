@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for SonarCloud branch analysis
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -22,62 +22,44 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Make all gradlew files executable
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and Analyze Maven Project
         run: |
-          # Find gradlew recursively under project/backend and make executable
-          # Use find relative to the current directory '.' if needed
-          find project/backend -name "gradlew" -type f -exec chmod +x {} \; || echo "No gradlew found or error making executable, continuing..."
+          echo "Building and analyzing Maven project..."
+          mvn clean verify sonar:sonar \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -DskipTests=true # Or remove if you want Maven to run its tests
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Make Gradle files executable
+        run: |
+          echo "Making Gradle files executable..."
+          chmod +x project/backend/**/gradlew
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
-          # Cache path relative to the runner's home directory
           path: ~/.gradle/caches
-          # Key depends on build files across all modules
           key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/gradle-wrapper.properties', 'project/backend/settings.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Run Tests and Generate JaCoCo Reports (All Modules)
+      - name: Run Tests and Generate JaCoCo Reports (Gradle Modules)
         run: |
-          echo "Running tests and generating JaCoCo reports for all services..."
-          # Assuming you have a root build.gradle/settings.gradle that includes modules in project/backend
-          # Run from the root directory where the main gradlew resides
+          echo "Running tests and generating JaCoCo reports for Gradle modules..."
           ./gradlew test jacocoTestReport --info --continue
-          # OR If each service MUST be built independently (less ideal for unified Sonar):
-          # found_services=false
-          # for dir in project/backend/*/; do
-          #   if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
-          #     found_services=true
-          #     service_name=$(basename "$dir")
-          #     echo "Processing service: $service_name"
-          #     # Run from the service directory
-          #     (cd "$dir" && ./gradlew test jacocoTestReport --info --continue) || echo "WARNING: Build/Test for $service_name failed but continuing..."
-          #   fi
-          # done
-          # if [ "$found_services" = false ]; then
-          #   echo "No microservices with build.gradle and gradlew found in project/backend/"
-          #   exit 1
-          # fi
 
-      - name: List generated JaCoCo reports (for verification)
+      - name: SonarCloud Scan (Gradle)
         run: |
-          echo "Checking for generated JaCoCo reports..."
-          find project/backend -path "*/build/reports/jacoco/test/jacocoTestReport.xml" -ls || echo "No JaCoCo reports found."
-
-      - name: SonarCloud Scan via Gradle
-        # Run this step even if tests failed in one module (--continue was used)
-        # to allow SonarCloud to report on successfully built modules and test results.
-        if: success() || failure()
-        run: |
-          echo "Running SonarCloud analysis..."
-          # Run from the root directory where the main gradlew resides
-          # The SonarQube plugin aggregates results from modules defined in settings.gradle
+          echo "Running SonarCloud analysis for Gradle projects..."
           ./gradlew sonarqube \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            --info
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
-          # GITHUB_TOKEN is read implicitly by SonarScanner for PR decoration
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # SONAR_TOKEN is passed explicitly via -Dsonar.login
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
