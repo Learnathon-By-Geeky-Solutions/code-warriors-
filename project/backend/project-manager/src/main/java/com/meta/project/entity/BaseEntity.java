@@ -15,12 +15,11 @@ public abstract class BaseEntity {
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
 
-    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 

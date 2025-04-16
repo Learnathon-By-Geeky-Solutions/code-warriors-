@@ -36,6 +36,13 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j' // Or the specific DB connector you use
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Testcontainers
+	testImplementation 'org.testcontainers:testcontainers:1.19.7'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+	testImplementation 'org.testcontainers:mysql:1.19.7'
+
+	// Spring Boot Testcontainers integration
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	// testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // Usually included via spring-boot-starter-test
 }
 

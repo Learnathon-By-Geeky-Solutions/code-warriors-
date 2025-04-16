@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
         log.error("Resource not found: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponsee(ex.getMessage()));
+                .body(new ErrorResponsee());
     }
 
     @ExceptionHandler(ServiceException.class)
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         log.error("Service exception: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponsee(ex.getMessage()));
+                .body(new ErrorResponsee());
     }
 
     @ExceptionHandler(Exception.class)
@@ -35,6 +35,6 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponsee("An unexpected error occurred. Please try again later."));
+                .body(new ErrorResponsee());
     }
 }

@@ -201,4 +201,45 @@ public class DocsServiceImpl implements DocsService {
         Docs doc = findDocsById(docId); // Helper method to fetch the document
         return doc.getRootGrandparentId();
     }
+
+
+    @Override
+    public DocsDTO convertToDTO(Docs docs) {
+        if (docs == null) {
+            return null;
+        }
+        String parentId = (docs.getParent() != null) ? docs.getParent().getId() : null;
+        List<DocsDTO> childrenDTO = docs.getChildren().stream()
+                .map(this::convertToDTO) // Recursively convert children to DTOs
+                .toList();
+
+        // Assuming 'level' can be retrieved directly from the Docs entity if it exists,
+        // otherwise, you might need to calculate or fetch it.
+        // If Docs entity doesn't have getLevel(), you might need to remove this or handle it differently.
+        Integer level = null;
+        // Check if getLevel() method exists (using try-catch for now, better to check entity definition)
+        try {
+            java.lang.reflect.Method getLevelMethod = Docs.class.getMethod("getLevel");
+            level = (Integer) getLevelMethod.invoke(docs);
+        } catch (NoSuchMethodException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
+            // Handle the case where getLevel() doesn't exist.
+            // You might want to set a default value or fetch it from somewhere else.
+            level = 0; // Defaulting to 0 if getLevel() is not found
+        }
+
+
+        return DocsDTO.builder()
+                .id(docs.getId())
+                .teamId(docs.getTeamId())
+                .officeId(docs.getOfficeId())
+                .title(docs.getTitle())
+                .content(docs.getContent())
+                .parentId(parentId)
+                .rootGrandparentId(docs.getRootGrandparentId())
+                .children(childrenDTO) // Using the list of DTOs for children
+                .level(level)
+                // .files(...) // Handle files based on your requirements
+                .build();
+    }
+
 }

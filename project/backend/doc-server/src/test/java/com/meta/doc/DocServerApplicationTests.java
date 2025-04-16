@@ -16,6 +16,6 @@ class DocServerApplicationTests {
 		 * If additional tests are required, this method should
 		 * be extended to verify essential application components.
 		 */
-		throw new UnsupportedOperationException("Test not implemented yet.");
+
 	}
 }

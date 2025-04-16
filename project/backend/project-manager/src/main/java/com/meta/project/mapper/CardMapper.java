@@ -61,9 +61,7 @@ public class CardMapper {
         dto.setTrackedTimes(new ArrayList<>(card.getTrackedTimes()));
         dto.setIsCompleted(card.getIsCompleted());
         dto.setDateTo(card.getDateTo());
-        dto.setCreatedAt(card.getCreatedAt());
         dto.setUpdatedAt(card.getUpdatedAt());
-
         dto.setComments(mapCommentsToDTOs(card.getComments()));
         dto.setTodos(mapTodosToDTOs(card.getTodos()));
         dto.setMemberIds(new ArrayList<>(card.getMembers()));
