@@ -2,8 +2,6 @@ package com.meta.doc.mapper;
 
 import com.meta.doc.dtos.DocsDTO;
 import com.meta.doc.entities.Docs;
-import com.meta.doc.repositories.DocumentFileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,16 +10,6 @@ import java.util.stream.Collectors;
 @Component
 public class DocsMapper {
 
-    private final DocumentFileRepository documentFileRepository;
-
-    @Autowired
-    public DocsMapper(DocumentFileRepository documentFileRepository) {
-        this.documentFileRepository = documentFileRepository;
-    }
-
-    public DocsDTO instanceToDto(Docs docs, int level) {
-        return convertToDto(docs, level);
-    }
 
     public static DocsDTO toDto(Docs docs, int level) {
         return convertToDto(docs, level);
@@ -66,6 +54,3 @@ public class DocsMapper {
                 .collect(Collectors.toList());
     }
 }
-
-
-

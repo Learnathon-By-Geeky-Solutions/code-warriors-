@@ -2,8 +2,8 @@ package com.meta.project.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -84,7 +84,6 @@ public class Card {
     private LocalDateTime dateTo;
     private Boolean isCompleted = false;
 
-    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -97,8 +96,9 @@ public class Card {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime createdAt = LocalDateTime.now();  // Local variable
+        updatedAt = createdAt;
+        // You can log or use createdAt here if needed.
     }
 
     @PreUpdate

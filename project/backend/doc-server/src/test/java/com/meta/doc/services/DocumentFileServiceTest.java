@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,16 +47,21 @@ class DocumentFileServiceTest extends BaseIntegrationTest {
         Files.createDirectories(directory);
         
         // Create a test document
-        DocsDTO doc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Test Doc",
-            "Test Content",
-            null,
-            null,
-            0
-        );
+        DocsDTO doc;
+        doc = DocsDTO.builder()
+                .id("id")
+                .teamId("teamId")
+                .officeId("officeId")
+                .title("title")
+                .content("content")
+                .parentId("parentId")
+                .rootGrandparentId("rootGrandparentId")
+                .children(new ArrayList<>())
+                .level(0)
+                .files(new ArrayList<>())
+                .build();
+
+
         testDoc = docsService.saveDocs(doc);
     }
 

@@ -4,7 +4,6 @@ import com.meta.project.dto.BoardDTO;
 import com.meta.project.entity.Board;
 import com.meta.project.exception.BoardNotFoundException;
 import com.meta.project.mapper.BoardMapper;
-import com.meta.project.repository.BoardListRepository;
 import com.meta.project.repository.BoardRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +16,10 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final BoardMapper boardMapper;
-    private final BoardListRepository boardListRepository;
 
-    public BoardService(BoardRepository boardRepository, BoardMapper boardMapper, BoardListRepository boardListRepository) {
+    public BoardService(BoardRepository boardRepository, BoardMapper boardMapper) {
         this.boardRepository = boardRepository;
         this.boardMapper = boardMapper;
-        this.boardListRepository = boardListRepository;
     }
 
     // Get all boards
@@ -72,4 +69,4 @@ public class BoardService {
         }
         boardRepository.deleteById(id);
     }
-}   
+}
