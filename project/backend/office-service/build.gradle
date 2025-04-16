@@ -49,9 +49,13 @@ dependencies {
 	testImplementation 'io.rest-assured:json-path:5.4.0'
 	testImplementation 'io.rest-assured:xml-path:5.4.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testImplementation 'org.testcontainers:testcontainers:1.19.3'
-	testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
-	testImplementation 'org.testcontainers:mysql:1.19.3'
+	// Testcontainers
+	testImplementation 'org.testcontainers:testcontainers:1.19.7'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+	testImplementation 'org.testcontainers:mysql:1.19.7'
+
+	// Spring Boot Testcontainers integration
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 
 dependencyManagement {

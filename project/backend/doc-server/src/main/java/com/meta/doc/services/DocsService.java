@@ -1,6 +1,7 @@
 package com.meta.doc.services;
 
 import com.meta.doc.dtos.DocsDTO;
+import com.meta.doc.entities.Docs;
 
 import java.util.List;
 
@@ -31,4 +32,5 @@ public interface DocsService {
     List<DocsDTO> getDocsByOfficeId(String officeId);
     String getGrandparentId(String docId);
 
+    DocsDTO convertToDTO(Docs retrievedDoc);
 }

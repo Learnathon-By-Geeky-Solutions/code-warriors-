@@ -3,10 +3,12 @@ package com.meta.doc.controllers;
 import com.meta.doc.services.FileService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -63,4 +65,10 @@ public class ResourceController {
         if (fileName.toLowerCase().endsWith(".zip")) return "application/zip";
         return MediaType.APPLICATION_OCTET_STREAM_VALUE; // Default binary stream
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
 }

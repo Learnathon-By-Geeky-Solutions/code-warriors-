@@ -11,6 +11,5 @@ class ProjectManagerApplicationTests {
 		// This test ensures that the Spring application context loads without issues.
 		// It is left empty intentionally because its purpose is to verify the basic
 		// initialization of the application context.
-		throw new UnsupportedOperationException("Test not implemented yet");
 	}
 }
