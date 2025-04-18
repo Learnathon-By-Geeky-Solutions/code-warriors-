@@ -34,9 +34,7 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                     .build();
-        } catch (IllegalStateException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
             // Handle other types of exceptions
