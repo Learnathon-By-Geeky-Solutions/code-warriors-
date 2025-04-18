@@ -99,9 +99,6 @@ public class ResourceController {
             throw new IllegalArgumentException("Path cannot be null");
         }
 
-        // Normalize the path to prevent path traversal
-        String sanitized = path.replaceAll("[.]{2,}", "");
-
-        return sanitized;
+        return path.replaceAll("[.]{2,}", "");
     }
 }
