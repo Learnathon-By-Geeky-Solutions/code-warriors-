@@ -78,11 +78,6 @@ public class TeamController {
      * @param officeId The office ID.
      * @return A list of TeamDTOs.
      */
-//    @GetMapping("/office/{officeId}")
-//    public ResponseEntity<List<TeamDTO>> getTeamsByOffice(@PathVariable String officeId) {
-//        List<TeamDTO> teams = teamService.getTeamsByOffice(officeId);
-//        return ResponseEntity.ok(teams);
-//    }
 
     @GetMapping("/office/{officeId}")
     public ResponseEntity<List<TeamDTO>> getTeamsByOffice(@PathVariable String officeId) {
