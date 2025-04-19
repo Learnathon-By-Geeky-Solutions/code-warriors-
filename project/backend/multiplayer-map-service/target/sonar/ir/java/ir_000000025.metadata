@@ -1,0 +1,6 @@
+java.util.Optional#orElseThrow(Ljava/util/function/Supplier;)Ljava/lang/Object;
+true
+cd54d07a88aaacaae6d7c91d51cafb68
+java.util.Optional#isEmpty()Z
+==
+get java.util.function.Supplier#get()Ljava/lang/Object;

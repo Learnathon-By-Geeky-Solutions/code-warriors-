@@ -1,0 +1,7 @@
+java.util.Objects#requireNonNull(Ljava/lang/Object;Ljava/util/function/Supplier;)Ljava/lang/Object;
+true
+c432beb3ea25b93f5b597d20f265b055
+java.lang.NullPointerException#<init>(Ljava/lang/String;)V
+java.lang.NullPointerException#instance-init#
+==
+get java.util.function.Supplier#get()Ljava/lang/Object;

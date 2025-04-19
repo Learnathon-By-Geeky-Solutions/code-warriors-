@@ -1,0 +1,6 @@
+java.util.Optional#orElseThrow()Ljava/lang/Object;
+true
+203301b16168e7c62c80180fdc4bb2d8
+java.util.NoSuchElementException#<init>(Ljava/lang/String;)V
+java.util.NoSuchElementException#instance-init#
+java.util.Optional#isEmpty()Z

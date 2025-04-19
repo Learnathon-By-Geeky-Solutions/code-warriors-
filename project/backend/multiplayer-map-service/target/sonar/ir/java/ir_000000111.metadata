@@ -1,0 +1,5 @@
+com.google.common.base.Verify#verifyNotNull(Ljava/lang/Object;)Ljava/lang/Object;
+true
+bddb8979b7c9b266a7ad0fb507ed76dd
+com.google.common.base.Verify$VerifyException#<init>()V
+com.google.common.base.Verify$VerifyException#instance-init#

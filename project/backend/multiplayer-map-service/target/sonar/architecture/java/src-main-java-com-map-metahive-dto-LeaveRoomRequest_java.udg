@@ -1,0 +1,222 @@
+
+1.0,Learnathon-By-Geeky-Solutions_code-warriors-JavaFrontend"1744499293382*java2.BÏ
+=
+8src/main/java/com/map/metahive/dto/LeaveRoomRequest.java2
+
+package4
+
+com.map.metahive.dto5
+*
+%com.map.metahive.dto.LeaveRoomRequest7
+
+
+class8
+
+access9
+
+public10
+
+simple name11
+
+LeaveRoomRequest12
+2
+,com.map.metahive.dto.LeaveRoomRequest.roomId14
+
+field15
+
+private16
+
+roomId17
+4
+.com.map.metahive.dto.LeaveRoomRequest.playerId19
+
+playerId20
+5
+/com.map.metahive.dto.LeaveRoomRequest#<init>()V22
+
+method23
+
+calls24
+Y
+Scom.map.metahive.dto.LeaveRoomRequest#<init>(Ljava/lang/String;Ljava/lang/String;)V26
+
+
+uses27
+
+
+references28
+I
+Ccom.map.metahive.dto.LeaveRoomRequest#getRoomId()Ljava/lang/String;30
+
+	getRoomId31
+J
+Dcom.map.metahive.dto.LeaveRoomRequest#setRoomId(Ljava/lang/String;)V33
+
+	setRoomId34
+K
+Ecom.map.metahive.dto.LeaveRoomRequest#getPlayerId()Ljava/lang/String;36
+
+getPlayerId37
+L
+Fcom.map.metahive.dto.LeaveRoomRequest#setPlayerId(Ljava/lang/String;)V39
+
+setPlayerId40J
+
+1
+12Z
+
+3	
+354jË
+9
+64
+678 *
+1 (:3B
+	
+9
+10
+
+
+11
+12
+@
+29:
+293023 *
+1 (26:3B
+	
+9
+10
+
+
+11
+31
+@
+21:
+212223 *
+1 (26:3B
+	
+9
+10
+
+
+11
+12
+@
+18:
+181915 *
+1 (26:3B
+	
+9
+16
+
+
+11
+20
+@
+13:
+131415 *
+1 (26:3B
+	
+9
+16
+
+
+11
+17
+@
+25:
+252623 *
+1	 	(26:3B
+	
+9
+10
+
+
+11
+12
+@
+32:
+323323 *
+1 (26:3B
+	
+9
+10
+
+
+11
+34
+@
+38:
+383923 *
+1 (26:3B
+	
+9
+10
+
+
+11
+40
+@
+35:
+353623 *
+1 (26:3B
+	
+9
+10
+
+
+11
+37r¦
+
+21624*
+1 (
+
+25624*
+1	 	(
+
+25627*
+1
+	 
+(
+
+25628*
+1
+	 
+(
+
+251328*
+1
+ 
+(
+
+25627*
+1	 (
+
+25628*
+1	 (
+
+251828*
+1 (
+
+291328*
+1 (
+
+32627*
+1	 (
+
+32628*
+1	 (
+
+321328*
+1 (
+
+351828*
+1 (
+
+38627*
+1	 (
+
+38628*
+1	 (
+
+381828*
+1 (

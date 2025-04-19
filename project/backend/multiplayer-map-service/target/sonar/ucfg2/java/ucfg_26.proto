@@ -1,0 +1,15 @@
+
+Ccom.map.metahive.dto.LeaveRoomRequest#getRoomId()Ljava/lang/String;£
+˜C:/Users/fuadn/OneDrive/Desktop/MetaHive/code-warriors-/project/backend/multiplayer-map-service/src/main/java/com/map/metahive/dto/LeaveRoomRequest.java ("1*²
+1 (}
+{
+ (
+%0java.lang.String"__id*Q
+
+__unknown_file (5*3'
+%com.map.metahive.dto.LeaveRoomRequest"
+roomId"$
+ (
+
+%0java.lang.StringB)'
+%com.map.metahive.dto.LeaveRoomRequestH

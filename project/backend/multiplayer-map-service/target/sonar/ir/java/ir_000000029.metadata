@@ -1,0 +1,6 @@
+java.util.Optional#or(Ljava/util/function/Supplier;)Ljava/util/Optional;
+true
+fc831a67076ddd41c5d40319657522d3
+java.lang.NullPointerException#<init>()V
+java.lang.NullPointerException#instance-init#
+java.util.Optional#isPresent()Z

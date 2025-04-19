@@ -1,0 +1,13 @@
+com.map.metahive.service.GameSessionService#removePlayer(Ljava/lang/String;Ljava/lang/String;)V
+false
+4bbb73c6656f3ee849d36d0c22fb3928
+java.lang.IllegalArgumentException#<init>(Ljava/lang/String;)V
+java.lang.IllegalArgumentException#instance-init#
+==
+get java.util.Map#get(Ljava/lang/Object;)Ljava/lang/Object;
+getPlayers com.map.metahive.model.Room#getPlayers()Ljava/util/Map;
+info org.slf4j.Logger#info(Ljava/lang/String;)V
+isEmpty java.util.Map#isEmpty()Z
+remove java.util.Map#remove(Ljava/lang/Object;)Ljava/lang/Object;
+removePlayer com.map.metahive.model.Room#removePlayer(Ljava/lang/String;)V
+warn org.slf4j.Logger#warn(Ljava/lang/String;)V

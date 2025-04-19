@@ -1,0 +1,4 @@
+com.map.metahive.MetaHiveApplication#main([Ljava/lang/String;)V
+false
+760fb8e261c6a31e675b46464bb17cdb
+org.springframework.boot.SpringApplication#run(Ljava/lang/Class;[Ljava/lang/String;)Lorg/springframework/context/ConfigurableApplicationContext;

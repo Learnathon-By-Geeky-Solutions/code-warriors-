@@ -1,0 +1,5 @@
+com.google.common.base.Preconditions#checkState(Z)V
+true
+b64fbc3dc1784cb48b69fc2cc1f5d5eb
+com.google.common.base.Preconditions$FakeIllegalStateException#<init>()V
+com.google.common.base.Preconditions$FakeIllegalStateException#instance-init#

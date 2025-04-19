@@ -1,0 +1,15 @@
+
+7com.map.metahive.model.Room#getPlayers()Ljava/util/Map;™
+ŽC:/Users/fuadn/OneDrive/Desktop/MetaHive/code-warriors-/project/backend/multiplayer-map-service/src/main/java/com/map/metahive/model/Room.java ()"1*£
+1 (q
+o
+ (
+%0java.util.Map"__id*H
+
+__unknown_file (,**
+com.map.metahive.model.Room"	
+players"!
+ (
+
+%0java.util.MapB
+com.map.metahive.model.RoomH

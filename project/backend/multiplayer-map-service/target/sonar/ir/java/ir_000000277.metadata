@@ -1,0 +1,8 @@
+com.map.metahive.service.GameSessionService#addRoom(Ljava/lang/String;Lcom/map/metahive/model/Room;)V
+false
+1553625449a5855dadb418cb562610f3
+java.lang.IllegalArgumentException#<init>(Ljava/lang/String;)V
+java.lang.IllegalArgumentException#instance-init#
+==
+info org.slf4j.Logger#info(Ljava/lang/String;)V
+put java.util.Map#put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;

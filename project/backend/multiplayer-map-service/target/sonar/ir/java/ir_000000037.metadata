@@ -1,0 +1,5 @@
+java.util.Optional#empty()Ljava/util/Optional;
+true
+e3200365fd08a157da9c149168564996
+java.util.Optional#<init>(Ljava/lang/Object;)V
+java.util.Optional#instance-init#

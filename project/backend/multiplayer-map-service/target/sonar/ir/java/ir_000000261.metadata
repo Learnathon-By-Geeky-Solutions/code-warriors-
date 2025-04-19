@@ -1,0 +1,10 @@
+com.map.metahive.controller.PlayerController#leaveRoom(Lcom/map/metahive/dto/LeaveRoomRequest;)V
+false
+908e21cfb9dfc9cbd77ad0099a0ac2ac
+com.map.metahive.controller.PlayerController#broadcastPlayerStates(Ljava/lang/String;)V
+==
+getPlayerId com.map.metahive.dto.LeaveRoomRequest#getPlayerId()Ljava/lang/String;
+getRoomId com.map.metahive.dto.LeaveRoomRequest#getRoomId()Ljava/lang/String;
+info org.slf4j.Logger#info(Ljava/lang/String;)V
+removePlayer com.map.metahive.service.GameSessionService#removePlayer(Ljava/lang/String;Ljava/lang/String;)V
+warn org.slf4j.Logger#warn(Ljava/lang/String;)V

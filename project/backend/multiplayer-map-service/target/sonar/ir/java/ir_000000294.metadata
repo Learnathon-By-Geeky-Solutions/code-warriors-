@@ -1,0 +1,7 @@
+com.map.metahive.config.WebSocketConfig#registerStompEndpoints(Lorg/springframework/web/socket/config/annotation/StompEndpointRegistry;)V
+false
+61a5830f209978978c05eba9f1650cee
+==
+addEndpoint org.springframework.web.socket.config.annotation.StompEndpointRegistry#addEndpoint([Ljava/lang/String;)Lorg/springframework/web/socket/config/annotation/StompWebSocketEndpointRegistration;
+setAllowedOriginPatterns org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration#setAllowedOriginPatterns([Ljava/lang/String;)Lorg/springframework/web/socket/config/annotation/StompWebSocketEndpointRegistration;
+withSockJS org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration#withSockJS()Lorg/springframework/web/socket/config/annotation/SockJsServiceRegistration;
