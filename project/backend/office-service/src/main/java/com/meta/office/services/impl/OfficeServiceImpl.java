@@ -6,6 +6,7 @@ import com.meta.office.entities.Office;
 import com.meta.office.entities.OfficeRole;
 import com.meta.office.enums.OfficeRoleType;
 import com.meta.office.exceptions.OfficeNotFoundException;
+import com.meta.office.exceptions.UnauthorizedException;
 import com.meta.office.repositories.OfficeRepository;
 import com.meta.office.repositories.OfficeRoleRepository;
 import com.meta.office.services.OfficeRoleService;
@@ -101,7 +102,7 @@ public class OfficeServiceImpl implements OfficeService {
     public List<OfficeDTO> getOfficesByUserId() {
         String userId = jwtUtil.getUserIdFromToken();
         if (userId == null) {
-            throw new RuntimeException("Unauthorized: User ID not found in token.");
+            throw new UnauthorizedException("User ID not found in token.");
         }
 
         List<OfficeRoleDTO> roles = officeRoleService.getRolesByMember(userId);
@@ -120,7 +121,7 @@ public class OfficeServiceImpl implements OfficeService {
     public void leaveOffice(String officeId) {
         String userId = jwtUtil.getUserIdFromToken();
         if (userId == null) {
-            throw new RuntimeException("Unauthorized: User ID not found in token.");
+            throw new UnauthorizedException("User ID not found in token.");
         }
         removeUserFromOffice(userId, officeId);
     }
@@ -180,12 +181,12 @@ public class OfficeServiceImpl implements OfficeService {
         // Validate that the user has admin role
         String userId = jwtUtil.getUserIdFromToken();
         if (userId == null) {
-            throw new RuntimeException("Unauthorized: User ID not found in token.");
+            throw new UnauthorizedException("User ID not found in token.");
         }
 
         // Check if user has admin role for this office
         if (!officeRoleService.hasMemberRole(userId, OfficeRoleType.ADMIN, officeId)) {
-            throw new RuntimeException("Unauthorized: Only admins can add office policy.");
+            throw new UnauthorizedException("Only admins can add office policy.");
         }
 
         // Find the office
