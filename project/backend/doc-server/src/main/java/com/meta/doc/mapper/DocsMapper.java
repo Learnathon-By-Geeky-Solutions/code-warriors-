@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 @Component
 public class DocsMapper {
 
+    private DocsMapper() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     public static DocsDTO toDto(Docs docs, int level) {
         return convertToDto(docs, level);

@@ -1,15 +1,11 @@
 package com.meta.doc.services;
 
 import com.meta.doc.BaseIntegrationTest;
-
 import com.meta.doc.dtos.DocsDTO;
 import com.meta.doc.entities.Docs; // Import the entity
-
 import com.meta.doc.repositories.DocsRepo;
 import com.meta.doc.repositories.DocumentFileRepository;
 import org.junit.jupiter.api.BeforeEach;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -18,15 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DocumentFileServiceTest extends BaseIntegrationTest {
 
-    @Autowired
-    private DocumentFileService documentFileService;
 
     @Autowired
     private DocsService docsService;
@@ -39,8 +32,6 @@ class DocumentFileServiceTest extends BaseIntegrationTest {
 
     @Value("${project.file.path}")
     private String testFilesPath;
-
-    private DocsDTO testDoc;
 
     @BeforeEach
     void setup() throws IOException {
@@ -68,9 +59,6 @@ class DocumentFileServiceTest extends BaseIntegrationTest {
         Optional<Docs> retrievedDocOptional = docsRepository.findById(savedDocDTO.getId());
         assertTrue(retrievedDocOptional.isPresent(), "Failed to retrieve saved Doc");
         Docs retrievedDoc = retrievedDocOptional.get();
-        testDoc = docsService.convertToDTO(retrievedDoc); // Convert the retrieved entity back to DTO for consistency in tests
+        docsService.convertToDTO(retrievedDoc); // Convert for consistency in tests
     }
-
-
-
 }
