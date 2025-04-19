@@ -100,7 +100,6 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     public List<OfficeDTO> getOfficesByUserId() {
         String userId = jwtUtil.getUserIdFromToken();
-        System.out.println("Getting office of User ID: " + userId +" THis is from OfficeServiceImpl");
         if (userId == null) {
             throw new RuntimeException("Unauthorized: User ID not found in token.");
         }
