@@ -172,8 +172,7 @@ public class OfficeServiceImpl implements OfficeService {
         }
 
         // Check if user has moderator role
-        boolean isModerator = officeRoleService.hasMemberRole(userId, OfficeRoleType.MODERATOR, officeId);
-        return isModerator;
+        return officeRoleService.hasMemberRole(userId, OfficeRoleType.MODERATOR, officeId);
     }
 
     @Override
