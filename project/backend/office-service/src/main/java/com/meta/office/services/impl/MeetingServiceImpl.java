@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingRepo meetingRepo;
+    private static final String MEETING_NOT_FOUND_MESSAGE = "Meeting not found with id: ";
 
     @Override
     public MeetingDTO createMeeting(MeetingDTO meetingDTO) {
@@ -34,14 +35,14 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public MeetingDTO getMeetingById(String id) {
         Meeting meeting = meetingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Meeting not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException(MEETING_NOT_FOUND_MESSAGE + id));
         return convertToDTO(meeting);
     }
 
     @Override
     public MeetingDTO updateMeeting(String id, MeetingDTO meetingDTO) {
         Meeting existingMeeting = meetingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Meeting not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException(MEETING_NOT_FOUND_MESSAGE + id));
 
         // Update existing meeting fields
         existingMeeting.setTitle(meetingDTO.getTitle());
@@ -56,7 +57,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public void deleteMeeting(String id) {
         Meeting meeting = meetingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Meeting not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException(MEETING_NOT_FOUND_MESSAGE + id));
         meetingRepo.delete(meeting);
     }
 
