@@ -100,7 +100,6 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     public List<OfficeDTO> getOfficesByUserId() {
         String userId = jwtUtil.getUserIdFromToken();
-        System.out.println("Getting office of User ID: " + userId +" THis is from OfficeServiceImpl");
         if (userId == null) {
             throw new RuntimeException("Unauthorized: User ID not found in token.");
         }
@@ -173,8 +172,7 @@ public class OfficeServiceImpl implements OfficeService {
         }
 
         // Check if user has moderator role
-        boolean isModerator = officeRoleService.hasMemberRole(userId, OfficeRoleType.MODERATOR, officeId);
-        return isModerator;
+        return officeRoleService.hasMemberRole(userId, OfficeRoleType.MODERATOR, officeId);
     }
 
     @Override
