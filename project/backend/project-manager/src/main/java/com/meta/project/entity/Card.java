@@ -1,26 +1,28 @@
 package com.meta.project.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @ToString(exclude = {"board", "boardList", "comments", "todos"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "cards")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class Card {
+
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
@@ -36,12 +38,10 @@ public class Card {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
-    @JsonBackReference("board-cards")
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "list_id")
-    @JsonBackReference("list-cards")
     private BoardList boardList;
 
     @ElementCollection
@@ -72,18 +72,14 @@ public class Card {
     private Set<String> trackedTimes = new HashSet<>();
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("card-comments")
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("card-todos")
     private List<Todo> todos = new ArrayList<>();
 
     private String userId;
-
     private LocalDateTime dateTo;
     private Boolean isCompleted = false;
-
     private LocalDateTime updatedAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -96,9 +92,7 @@ public class Card {
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime createdAt = LocalDateTime.now();  // Local variable
-        updatedAt = createdAt;
-        // You can log or use createdAt here if needed.
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate

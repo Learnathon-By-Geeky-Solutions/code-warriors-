@@ -1,7 +1,7 @@
 package com.meta.project.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +16,10 @@ import java.util.Set;
 @ToString(exclude = {"board", "cards"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class BoardList extends BaseEntity {
 
     private String title;
@@ -25,10 +29,8 @@ public class BoardList extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
-    @JsonBackReference("board-lists")
     private Board board;
 
     @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("list-cards")
     private Set<Card> cards = new HashSet<>();
 }
