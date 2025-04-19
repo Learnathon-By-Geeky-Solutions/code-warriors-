@@ -36,12 +36,11 @@ class OfficeRoleServiceTest {
     private OfficeRoleRepository officeRoleRepository;
 
     private OfficeDTO testOffice;
-    private String testUserId;
+
 
     @BeforeEach
     void setUp() {
         officeRoleRepository.deleteAll();
-        testUserId = UUID.randomUUID().toString();
         
         OfficeDTO officeDTO = new OfficeDTO();
         officeDTO.setName("Test Office");
