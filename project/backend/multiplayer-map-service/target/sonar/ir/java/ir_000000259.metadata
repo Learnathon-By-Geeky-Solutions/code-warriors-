@@ -1,0 +1,18 @@
+com.map.metahive.controller.PlayerController#registerPlayer(Lcom/map/metahive/model/Player;)V
+false
+e9dcc674585b1e16fe446bae18bfa8ce
+com.map.metahive.controller.PlayerController#broadcastPlayerStates(Ljava/lang/String;)V
+java.lang.String#isEmpty()Z
+==
+addPlayer com.map.metahive.service.GameSessionService#addPlayer(Lcom/map/metahive/model/Player;)V
+getId com.map.metahive.model.Player#getId()Ljava/lang/String;
+getPlayerById com.map.metahive.service.GameSessionService#getPlayerById(Ljava/lang/String;Ljava/lang/String;)Lcom/map/metahive/model/Player;
+getRoomId com.map.metahive.model.Player#getRoomId()Ljava/lang/String;
+getSpawnCoordinates com.map.metahive.service.SpawnPointService#getSpawnCoordinates()[D
+getUsername com.map.metahive.model.Player#getUsername()Ljava/lang/String;
+info org.slf4j.Logger#info(Ljava/lang/String;)V
+roomExists com.map.metahive.service.GameSessionService#roomExists(Ljava/lang/String;)Z
+setUsername com.map.metahive.model.Player#setUsername(Ljava/lang/String;)V
+setX com.map.metahive.model.Player#setX(D)V
+setY com.map.metahive.model.Player#setY(D)V
+warn org.slf4j.Logger#warn(Ljava/lang/String;)V

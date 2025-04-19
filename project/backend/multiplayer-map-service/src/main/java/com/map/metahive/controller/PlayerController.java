@@ -40,7 +40,6 @@ public class PlayerController {
 
     @MessageMapping("/createRoom")
     public void createRoom(@Payload CreateRoomRequest request) {
-        // Removed the unused assignment to "username"
         String roomId = request.getRoomId();
 
         if (roomId == null || roomId.isEmpty()) {
@@ -52,7 +51,6 @@ public class PlayerController {
             return;
         }
 
-        // Create room if it doesn't exist
         if (!gameSessionService.roomExists(roomId)) {
             gameSessionService.createRoom(roomId);
             logger.info("Room created successfully.");
@@ -68,10 +66,9 @@ public class PlayerController {
 
     @MessageMapping("/joinRoom")
     public void joinRoom(SimpMessageHeaderAccessor headerAccessor, @Payload JoinRoomRequest request) {
-        String username = request.getUsername();
+        // Removed unused "username" variable
         String roomId = request.getRoomId();
 
-        // If room does not exist, create one
         if (!gameSessionService.roomExists(roomId)) {
             logger.info("Room not found; creating a new room.");
             Room newRoom = new Room(roomId);
@@ -81,7 +78,7 @@ public class PlayerController {
         Map<String, Object> response = new HashMap<>();
         response.put("roomId", roomId);
         response.put(KEY_SUCCESS, true);
-        logger.info("User joining room."); // Generic log; avoid showing username or roomId
+        logger.info("User joining room.");
         messagingTemplate.convertAndSend("/queue/joinResult", response);
     }
 
@@ -96,7 +93,6 @@ public class PlayerController {
             return;
         }
 
-        // Check if player already exists in the room
         Player existing = gameSessionService.getPlayerById(incoming.getRoomId(), incoming.getId());
         if (existing != null) {
             logger.info("Player already exists; updating username if needed.");
@@ -105,7 +101,6 @@ public class PlayerController {
             return;
         }
 
-        // Use SpawnPointService to retrieve spawn coordinates
         double[] spawnCoords = spawnPointService.getSpawnCoordinates();
         incoming.setX(spawnCoords[0]);
         incoming.setY(spawnCoords[1]);
@@ -118,7 +113,8 @@ public class PlayerController {
     @MessageMapping("/move")
     public void movePlayer(@Payload Player playerMovement) {
         logger.info("Processing movement for a player.");
-        Player existingPlayer = gameSessionService.getPlayerById(playerMovement.getRoomId(), playerMovement.getId());
+        Player existingPlayer = gameSessionService.getPlayerById(
+                playerMovement.getRoomId(), playerMovement.getId());
 
         if (existingPlayer != null) {
             existingPlayer.setX(playerMovement.getX());

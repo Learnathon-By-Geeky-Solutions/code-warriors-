@@ -1,0 +1,7 @@
+java.lang.reflect.Array#newInstance(Ljava/lang/Class;I)Ljava/lang/Object;
+true
+490262e3782531b2d07017e344873274
+java.lang.NegativeArraySizeException#<init>()V
+java.lang.NegativeArraySizeException#instance-init#
+java.lang.NullPointerException#<init>()V
+java.lang.NullPointerException#instance-init#

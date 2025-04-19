@@ -1,0 +1,7 @@
+java.util.Optional#flatMap(Ljava/util/function/Function;)Ljava/util/Optional;
+true
+9765d709446ac05349d91f52d9e441df
+java.lang.NullPointerException#<init>()V
+java.lang.NullPointerException#instance-init#
+java.util.Optional#empty()Ljava/util/Optional;
+java.util.Optional#isEmpty()Z

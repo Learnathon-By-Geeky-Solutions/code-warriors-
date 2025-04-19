@@ -1,0 +1,5 @@
+com.map.metahive.model.Room#hasPlayer(Ljava/lang/String;)Z
+false
+6fcc347beb0aa87b533542b41ab8b71c
+==
+containsKey java.util.Map#containsKey(Ljava/lang/Object;)Z

@@ -1,0 +1,640 @@
+
+1.0,Learnathon-By-Geeky-Solutions_code-warriors-JavaFrontend"1744499292543*java2.B¤
+5
+0src/main/java/com/map/metahive/model/Player.java2
+
+package4
+
+com.map.metahive.model5
+"
+com.map.metahive.model.Player7
+
+
+class8
+
+access9
+
+public10
+
+simple name11
+
+Player12
+&
+ com.map.metahive.model.Player.id14
+
+field15
+
+private16
+
+id17
+-
+'com.map.metahive.model.Player.direction19
+
+	direction20
+,
+&com.map.metahive.model.Player.username22
+
+username23
+%
+com.map.metahive.model.Player.x25
+
+x26
+%
+com.map.metahive.model.Player.y28
+
+y29
+)
+#com.map.metahive.model.Player.color31
+
+color32
+,
+&com.map.metahive.model.Player.isMoving34
+
+isMoving35
+-
+'com.map.metahive.model.Player.animation37
+
+	animation38
+-
+'com.map.metahive.model.Player.timestamp40
+
+	timestamp41
+*
+$com.map.metahive.model.Player.roomId43
+
+roomId44
+-
+'com.map.metahive.model.Player#<init>()V46
+
+method47
+
+calls48
+=
+7com.map.metahive.model.Player#getId()Ljava/lang/String;50
+
+getId51
+
+
+references52
+>
+8com.map.metahive.model.Player#setId(Ljava/lang/String;)V54
+
+setId55
+
+
+uses56
+D
+>com.map.metahive.model.Player#getDirection()Ljava/lang/String;58
+
+getDirection59
+E
+?com.map.metahive.model.Player#setDirection(Ljava/lang/String;)V61
+
+setDirection62
+C
+=com.map.metahive.model.Player#getUsername()Ljava/lang/String;64
+
+getUsername65
+D
+>com.map.metahive.model.Player#setUsername(Ljava/lang/String;)V67
+
+setUsername68
++
+%com.map.metahive.model.Player#getX()D70
+
+
+getX71
+,
+&com.map.metahive.model.Player#setX(D)V73
+
+
+setX74
++
+%com.map.metahive.model.Player#getY()D76
+
+
+getY77
+,
+&com.map.metahive.model.Player#setY(D)V79
+
+
+setY80
+@
+:com.map.metahive.model.Player#getColor()Ljava/lang/String;82
+
+getColor83
+A
+;com.map.metahive.model.Player#setColor(Ljava/lang/String;)V85
+
+setColor86
+2
+,com.map.metahive.model.Player#getIsMoving()Z88
+
+getIsMoving89
+3
+-com.map.metahive.model.Player#setIsMoving(Z)V91
+
+setIsMoving92
+D
+>com.map.metahive.model.Player#getAnimation()Ljava/lang/String;94
+
+getAnimation95
+E
+?com.map.metahive.model.Player#setAnimation(Ljava/lang/String;)V97
+
+setAnimation98
+4
+-com.map.metahive.model.Player#getTimestamp()J100
+
+getTimestamp101
+5
+.com.map.metahive.model.Player#setTimestamp(J)V103
+
+setTimestamp104
+B
+;com.map.metahive.model.Player#getRoomId()Ljava/lang/String;106
+
+	getRoomId107
+C
+<com.map.metahive.model.Player#setRoomId(Ljava/lang/String;)V109
+
+	setRoomId110J
+
+1
+12Z
+
+3	
+354jÇ
+@
+93:
+939447 *
+1F F(26:3B
+	
+9
+10
+
+
+11
+95
+@
+49:
+495047 *
+1 (26:3B
+	
+9
+10
+
+
+11
+51
+@
+84:
+848547 *
+1; ;(26:3B
+	
+9
+10
+
+
+11
+86
+@
+36:
+363715 *
+1 (26:3B
+	
+9
+16
+
+
+11
+38
+@
+39:
+394015 *
+1 (26:3B
+	
+9
+16
+
+
+11
+41
+@
+81:
+818247 *
+18 8(26:3B
+	
+9
+10
+
+
+11
+83
+@
+87:
+878847 *
+1? ?(26:3B
+	
+9
+10
+
+
+11
+89
+@
+63:
+636447 *
+1# #(26:3B
+	
+9
+10
+
+
+11
+65
+@
+42:
+424315 *
+1 (26:3B
+	
+9
+16
+
+
+11
+44
+@
+30:
+303115 *
+1	 	(26:3B
+	
+9
+16
+
+
+11
+32
+B
+99<
+9910047 *
+1M M(26:3B
+	
+9
+10
+
+11
+101
+@
+72:
+727347 *
+1- -(26:3B
+	
+9
+10
+
+
+11
+74
+@
+18:
+181915 *
+1 (26:3B
+	
+9
+16
+
+
+11
+20
+@
+21:
+212215 *
+1 (26:3B
+	
+9
+16
+
+
+11
+23
+@
+24:
+242515 *
+1 (26:3B
+	
+9
+16
+
+
+11
+26
+@
+27:
+272815 *
+1 (26:3B
+	
+9
+16
+
+
+11
+29
+@
+96:
+969747 *
+1I I(26:3B
+	
+9
+10
+
+
+11
+98
+@
+69:
+697047 *
+1* *(26:3B
+	
+9
+10
+
+
+11
+71
+@
+78:
+787947 *
+14 4(26:3B
+	
+9
+10
+
+
+11
+80
+D
+108=
+10810947 *
+1W W(26:3B
+	
+9
+10
+
+11
+110
+@
+33:
+333415 *
+1
+ 
+(26:3B
+	
+9
+16
+
+
+11
+35
+@
+13:
+131415 *
+1 (26:3B
+	
+9
+16
+
+
+11
+17
+@
+90:
+909147 *
+1B B(26:3B
+	
+9
+10
+
+
+11
+92
+9
+64
+678 *
+1 (:3B
+	
+9
+10
+
+
+11
+12
+@
+57:
+575847 *
+1 (26:3B
+	
+9
+10
+
+
+11
+59
+D
+105=
+10510647 *
+1T T(26:3B
+	
+9
+10
+
+11
+107
+@
+53:
+535447 *
+1 (26:3B
+	
+9
+10
+
+
+11
+55
+@
+66:
+666747 *
+1& &(26:3B
+	
+9
+10
+
+
+11
+68
+D
+102=
+10210347 *
+1P P(26:3B
+	
+9
+10
+
+11
+104
+@
+45:
+454647 *
+1 (26:3B
+	
+9
+10
+
+
+11
+12
+@
+75:
+757647 *
+11 1(26:3B
+	
+9
+10
+
+
+11
+77
+@
+60:
+606147 *
+1 (26:3B
+	
+9
+10
+
+
+11
+62rÅ
+
+45648*
+1 (
+
+491352*
+1 (
+
+53656*
+1	 (
+
+53652*
+1	 (
+
+531352*
+1 (
+
+571852*
+1 (
+
+60656*
+1 	  (
+
+60652*
+1 	  (
+
+601852*
+1   (
+
+632152*
+1$ $(
+
+66656*
+1'	 '(
+
+66652*
+1'	 '(
+
+662152*
+1' '(
+
+692452*
+1+ +(
+
+72656*
+1.	 .(
+
+72652*
+1.	 .(
+
+722452*
+1. .(
+
+752752*
+12 2(
+
+78656*
+15	 5(
+
+78652*
+15	 5(
+
+782752*
+15 5(
+
+813052*
+19 9(
+
+84656*
+1<	 <(
+
+84652*
+1<	 <(
+
+843052*
+1< <(
+
+873352*
+1@ @(
+
+90656*
+1C	 C(
+
+90652*
+1C	 C(
+
+903352*
+1C C(
+
+933652*
+1G G(
+
+96656*
+1J	 J(
+
+96652*
+1J	 J(
+
+963652*
+1J J(
+
+993952*
+1N N(
+
+102656*
+1Q	 Q(
+
+102652*
+1Q	 Q(
+
+1023952*
+1Q Q(
+
+1054252*
+1U U(
+
+108656*
+1X	 X(
+
+108652*
+1X	 X(
+
+1084252*
+1X X(

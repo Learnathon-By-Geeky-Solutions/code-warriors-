@@ -1,0 +1,5 @@
+java.util.Optional#ofNullable(Ljava/lang/Object;)Ljava/util/Optional;
+true
+27983a8129eb393f8941a64561bfd5a7
+java.util.Optional#<init>(Ljava/lang/Object;)V
+java.util.Optional#instance-init#

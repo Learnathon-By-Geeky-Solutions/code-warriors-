@@ -1,0 +1,5 @@
+java.util.StringTokenizer#<init>(Ljava/lang/String;Ljava/lang/String;Z)V
+true
+851e54497e3dbc58121fdbf0b52bff3c
+java.lang.NullPointerException#<init>()V
+java.lang.NullPointerException#instance-init#

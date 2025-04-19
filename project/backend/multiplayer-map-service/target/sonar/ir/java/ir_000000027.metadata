@@ -1,0 +1,4 @@
+java.util.Optional#orElseGet(Ljava/util/function/Supplier;)Ljava/lang/Object;
+true
+8b8007ac37588dcf1bd49d5b41925110
+java.util.Optional#isPresent()Z

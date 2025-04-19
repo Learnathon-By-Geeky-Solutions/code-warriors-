@@ -1,0 +1,13 @@
+com.map.metahive.service.GameSessionService#addPlayer(Lcom/map/metahive/model/Player;)V
+false
+7bafa9ec104c6a1ea944e4f33f9c5621
+java.lang.IllegalArgumentException#<init>(Ljava/lang/String;)V
+java.lang.IllegalArgumentException#instance-init#
+java.lang.IllegalStateException#<init>(Ljava/lang/String;)V
+java.lang.IllegalStateException#instance-init#
+==
+addPlayer com.map.metahive.model.Room#addPlayer(Lcom/map/metahive/model/Player;)V
+get java.util.Map#get(Ljava/lang/Object;)Ljava/lang/Object;
+getId com.map.metahive.model.Player#getId()Ljava/lang/String;
+getRoomId com.map.metahive.model.Player#getRoomId()Ljava/lang/String;
+info org.slf4j.Logger#info(Ljava/lang/String;)V
