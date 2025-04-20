@@ -1,117 +1,59 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco' // Added JaCoCo plugin
-	id 'org.sonarqube' version '4.4.1.3373' // Added SonarQube plugin
-}
-
-group = 'com.meta'
-version = '0.0.1-SNAPSHOT'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-repositories {
-	mavenCentral()
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
 }
 
 ext {
-	set('springCloudVersion', "2024.0.0")
+    set('springCloudVersion', "2024.0.0")
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.1.1'
-	implementation 'org.flywaydb:flyway-core'
-	implementation 'org.flywaydb:flyway-mysql'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testImplementation 'io.rest-assured:rest-assured:5.4.0'
-	testImplementation 'io.rest-assured:json-path:5.4.0'
-	testImplementation 'io.rest-assured:xml-path:5.4.0'
-	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
-	// Testcontainers
-	testImplementation 'org.testcontainers:testcontainers:1.19.7'
-	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
-	testImplementation 'org.testcontainers:mysql:1.19.7'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.1.1'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'io.rest-assured:json-path:5.4.0'
+    testImplementation 'io.rest-assured:xml-path:5.4.0'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
+    // Testcontainers
+    testImplementation 'org.testcontainers:testcontainers:1.19.7'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:mysql:1.19.7'
 
-	// Spring Boot Testcontainers integration
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    // Spring Boot Testcontainers integration
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
-jacoco {
-	toolVersion = "0.8.11" // Or use a more recent version like "0.8.12"
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = true
-		html.required = false
-		csv.required = false
-	}
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, excludes: [
-					'**/config/**',
-					'**/exception/**',
-					'**/model/**',
-					'**/dto/**',
-					'**/Application*'
-			])
-		}))
-	}
-}
-
-sonarqube {
-	properties {
-		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-" // Make sure this is the correct key
-		property "sonar.organization", "learnathon-by-geeky-solutions" // Ensure this is your organization key
-		property "sonar.host.url", "https://sonarcloud.io"
-		// Remove sonar.login - pass token via command line or CI environment variable
-
-		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
-		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-	}
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-	jvmArgs = ["-javaagent:${configurations.testRuntimeClasspath.find { it.name.contains('byte-buddy-agent') }}"]
-	finalizedBy jacocoTestReport // Ensure JaCoCo report runs after tests
-}
-
-// The printRuntimeClasspath task is kept as it was in the old configuration
 task printRuntimeClasspath {
-	doLast {
-		println sourceSets.main.runtimeClasspath.asPath
-	}
+    doLast {
+        println sourceSets.main.runtimeClasspath.asPath
+    }
 }
