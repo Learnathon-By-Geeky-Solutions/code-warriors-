@@ -1,0 +1,14 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+MetaHive,com.map.metahive.dto,JoinRoomRequest,3,5,0,0,2,2,1,1,1,1
+MetaHive,com.map.metahive.dto,LeaveRoomRequest,3,23,0,0,1,10,1,5,1,5
+MetaHive,com.map.metahive.dto,CreateRoomRequest,3,5,0,0,2,2,1,1,1,1
+MetaHive,com.map.metahive.dto,RoomRequest,0,26,0,0,0,11,0,6,0,6
+MetaHive,com.map.metahive.config.cors,CorsConfig,0,41,0,0,0,9,0,2,0,2
+MetaHive,com.map.metahive,MetaHiveApplication,5,3,0,0,2,1,1,1,1,1
+MetaHive,com.map.metahive.model,Room,0,75,1,13,0,19,1,13,0,7
+MetaHive,com.map.metahive.model,Player,0,73,0,0,0,32,0,21,0,21
+MetaHive,com.map.metahive.service,SpawnPointService.new TypeReference() {...},3,0,0,0,1,0,1,0,1,0
+MetaHive,com.map.metahive.service,GameSessionService,39,188,18,28,9,46,18,15,0,10
+MetaHive,com.map.metahive.service,SpawnPointService,82,30,10,0,16,7,5,3,0,3
+MetaHive,com.map.metahive.controller,PlayerController,15,274,8,14,7,72,8,11,0,8
+MetaHive,com.map.metahive.config,WebSocketConfig,0,44,0,0,0,8,0,3,0,3
