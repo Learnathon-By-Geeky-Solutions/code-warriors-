@@ -1,6 +1,0 @@
-com.map.metahive.config.WebSocketConfig#configureMessageBroker(Lorg/springframework/messaging/simp/config/MessageBrokerRegistry;)V
-false
-97f780990ecbc62d75ea5058075c7a27
-==
-enableSimpleBroker org.springframework.messaging.simp.config.MessageBrokerRegistry#enableSimpleBroker([Ljava/lang/String;)Lorg/springframework/messaging/simp/config/SimpleBrokerRegistration;
-setApplicationDestinationPrefixes org.springframework.messaging.simp.config.MessageBrokerRegistry#setApplicationDestinationPrefixes([Ljava/lang/String;)Lorg/springframework/messaging/simp/config/MessageBrokerRegistry;
