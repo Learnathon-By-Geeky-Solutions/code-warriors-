@@ -1,3 +1,0 @@
-com.map.metahive.controller.PlayerController#<init>(Lcom/map/metahive/service/GameSessionService;Lorg/springframework/messaging/simp/SimpMessagingTemplate;Lcom/map/metahive/service/SpawnPointService;)V
-false
-f170088c41a22979127065f494515b5c
