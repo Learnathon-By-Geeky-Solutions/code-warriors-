@@ -22,30 +22,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class DocumentFileControllerTest extends BaseIntegrationTest {
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private DocsService docsService;
 
-    @TempDir
-    Path tempDir;
 
     private DocsDTO testDoc;
 
     @BeforeEach
     void setUp() {
-        // Create a test document
-        DocsDTO doc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Test Doc",
-            "Test Content",
-            null,
-            null,
-            0
-        );
+        // Create a test document using the builder pattern
+        DocsDTO doc = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Test Doc")
+                .content("Test Content")
+                .level(0)
+                .build();
         testDoc = docsService.saveDocs(doc);
     }
 

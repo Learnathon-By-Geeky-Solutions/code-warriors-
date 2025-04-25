@@ -1,0 +1,86 @@
+name: SonarCloud Analysis
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Make all gradlew files executable
+        run: |
+          find project/backend -name "gradlew" -type f -exec chmod +x {} \;
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Run Tests and Generate JaCoCo Reports
+        run: |
+          echo "Running tests and generating JaCoCo reports for all microservices..."
+          for dir in project/backend/*/; do
+            if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
+              echo "Testing and generating JaCoCo for $(basename "$dir")"
+              (cd "$dir" && ./gradlew test jacocoTestReport --info --continue) || echo "WARNING: $(basename "$dir") failed tests or report"
+            fi
+          done
+
+      - name: Prepare SonarCloud parameters
+        id: sonar-params
+        run: |
+          SOURCES=""
+          TESTS=""
+          BINARIES=""
+          TEST_BINARIES=""
+          JACOCO_REPORTS=""
+
+          for dir in project/backend/*/; do
+            if [ -d "$dir/src/main/java" ]; then SOURCES="$SOURCES,$dir/src/main/java"; fi
+            if [ -d "$dir/src/test/java" ]; then TESTS="$TESTS,$dir/src/test/java"; fi
+            if [ -d "$dir/build/classes/java/main" ]; then BINARIES="$BINARIES,$dir/build/classes/java/main"; fi
+            if [ -d "$dir/build/classes/java/test" ]; then TEST_BINARIES="$TEST_BINARIES,$dir/build/classes/java/test"; fi
+            if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then JACOCO_REPORTS="$JACOCO_REPORTS,$dir/build/reports/jacoco/test/jacocoTestReport.xml"; fi
+          done
+
+          # Remove leading commas
+          echo "sources=${SOURCES#,}" >> $GITHUB_OUTPUT
+          echo "tests=${TESTS#,}" >> $GITHUB_OUTPUT
+          echo "binaries=${BINARIES#,}" >> $GITHUB_OUTPUT
+          echo "test_binaries=${TEST_BINARIES#,}" >> $GITHUB_OUTPUT
+          echo "jacoco_reports=${JACOCO_REPORTS#,}" >> $GITHUB_OUTPUT
+
+      - name: SonarCloud Scan
+        if: success() || failure()
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
+            -Dsonar.organization=learnathon-by-geeky-solutions
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
+            -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
+            -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
+            -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
+            -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

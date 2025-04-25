@@ -17,24 +17,21 @@ class DocsServiceTest extends BaseIntegrationTest {
     private DocsService docsService;
 
     private DocsDTO rootDoc;
-
     @BeforeEach
     void setUp() {
         // Create a root document
-        DocsDTO doc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Root Doc",
-            "Root Content",
-            null,
-            null,
-            0
-        );
+        DocsDTO doc = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Root Doc")
+                .content("Root Content")
+                .level(0)
+                .build();
         rootDoc = docsService.saveDocs(doc);
     }
 
-    
+
 
     @Test
     void shouldGetAllDocs() {
@@ -47,17 +44,17 @@ class DocsServiceTest extends BaseIntegrationTest {
     void shouldUpdateDoc() {
         String updatedTitle = "Updated Title";
         String updatedContent = "Updated Content";
-        
-        DocsDTO updateRequest = new DocsDTO(
-            rootDoc.getId(),
-            rootDoc.getTeamId(),
-            rootDoc.getOfficeId(),
-            updatedTitle,
-            updatedContent,
-            rootDoc.getParentId(),
-            rootDoc.getRootGrandparentId(),
-            rootDoc.getLevel()
-        );
+
+        DocsDTO updateRequest = DocsDTO.builder()
+                .id(rootDoc.getId())
+                .teamId(rootDoc.getTeamId())
+                .officeId(rootDoc.getOfficeId())
+                .title(updatedTitle)
+                .content(updatedContent)
+                .parentId(rootDoc.getParentId())
+                .rootGrandparentId(rootDoc.getRootGrandparentId())
+                .level(rootDoc.getLevel())
+                .build();
 
         DocsDTO updatedDoc = docsService.updateDocs(rootDoc.getId(), updateRequest);
         assertEquals(updatedTitle, updatedDoc.getTitle());
@@ -78,16 +75,15 @@ class DocsServiceTest extends BaseIntegrationTest {
         assertTrue(rootDocs.stream().anyMatch(doc -> doc.getId().equals(rootDoc.getId())));
 
         // Create a child document
-        DocsDTO childDoc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Child Doc",
-            "Child Content",
-            rootDoc.getId(),
-            null,
-            0
-        );
+        DocsDTO childDoc = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Child Doc")
+                .content("Child Content")
+                .parentId(rootDoc.getId())
+                .level(0)
+                .build();
         DocsDTO savedChildDoc = docsService.saveDocs(childDoc);
 
         // Get child docs
@@ -99,16 +95,15 @@ class DocsServiceTest extends BaseIntegrationTest {
     @Test
     void shouldGetDocHierarchy() {
         // Create a child document
-        DocsDTO childDoc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Child Doc",
-            "Child Content",
-            rootDoc.getId(),
-            null,
-            0
-        );
+        DocsDTO childDoc = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Child Doc")
+                .content("Child Content")
+                .parentId(rootDoc.getId())
+                .level(0)
+                .build();
         docsService.saveDocs(childDoc);
 
         // Get hierarchy
@@ -120,29 +115,26 @@ class DocsServiceTest extends BaseIntegrationTest {
     @Test
     void shouldMoveDoc() {
         // Create a new parent
-        DocsDTO newParent = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "New Parent",
-            "New Parent Content",
-            null,
-            null,
-            0
-        );
+        DocsDTO newParent = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("New Parent")
+                .content("New Parent Content")
+                .level(0)
+                .build();
         DocsDTO savedNewParent = docsService.saveDocs(newParent);
 
         // Create a doc to move
-        DocsDTO docToMove = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Doc to Move",
-            "Content",
-            rootDoc.getId(),
-            null,
-            0
-        );
+        DocsDTO docToMove = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Doc to Move")
+                .content("Content")
+                .parentId(rootDoc.getId())
+                .level(0)
+                .build();
         DocsDTO savedDocToMove = docsService.saveDocs(docToMove);
 
         // Move the doc
@@ -169,31 +161,29 @@ class DocsServiceTest extends BaseIntegrationTest {
     @Test
     void shouldGetGrandparentId() {
         // Create hierarchy: root -> parent -> child
-        DocsDTO parent = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Parent",
-            "Parent Content",
-            rootDoc.getId(),
-            null,
-            0
-        );
+        DocsDTO parent = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Parent")
+                .content("Parent Content")
+                .parentId(rootDoc.getId())
+                .level(0)
+                .build();
         DocsDTO savedParent = docsService.saveDocs(parent);
 
-        DocsDTO child = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Child",
-            "Child Content",
-            savedParent.getId(),
-            null,
-            0
-        );
+        DocsDTO child = DocsDTO.builder()
+                .id(UUID.randomUUID().toString())
+                .teamId("team1")
+                .officeId("office1")
+                .title("Child")
+                .content("Child Content")
+                .parentId(savedParent.getId())
+                .level(0)
+                .build();
         DocsDTO savedChild = docsService.saveDocs(child);
 
         String grandparentId = docsService.getGrandparentId(savedChild.getId());
         assertEquals(rootDoc.getId(), grandparentId);
     }
-} 
+}

@@ -31,5 +31,8 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.flyway.url", mysqlContainer::getJdbcUrl);
         registry.add("spring.flyway.user", mysqlContainer::getUsername);
         registry.add("spring.flyway.password", mysqlContainer::getPassword);
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> "5");
+        registry.add("spring.datasource.hikari.connection-timeout", () -> "30000");
+        registry.add("spring.datasource.hikari.max-lifetime", () -> "60000");
     }
 }

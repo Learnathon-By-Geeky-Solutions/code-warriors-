@@ -1,0 +1,95 @@
+.pdfContainer {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.uploadArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 2px dashed var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--bg-start);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.uploadArea:hover {
+  background-color: var(--bg-end);
+}
+
+.uploadText {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.uploadButton {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  transition: all 0.3s ease;
+}
+
+.uploadButton:hover {
+  background-color: var(--button-hover-bg);
+}
+
+.pdfViewer {
+  margin-top: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.pdfTitle {
+  padding: 1rem;
+  background-color: var(--bg-end);
+  color: var(--text-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.pdfObject {
+  width: 100%;
+  height: 800px;
+  background-color: white;
+}
+
+.fallbackText {
+  padding: 1rem;
+  color: var(--text-color);
+}
+
+.downloadLink {
+  color: var(--link-color);
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+
+.downloadLink:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode specific styles */
+:global([data-theme="dark"]).uploadArea {
+  border-color: var(--border-color-dark, rgba(255, 255, 255, 0.1));
+}
+
+:global([data-theme="dark"]).uploadText,
+:global([data-theme="dark"]).fallbackText {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.9));
+}
+
+:global([data-theme="dark"]).pdfTitle {
+  background-color: var(--bg-end-dark, #1a1a1a);
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.9));
+}
+
+:global([data-theme="dark"]).downloadLink {
+  color: var(--link-color-dark, #60a5fa);
+}
+

@@ -72,9 +72,6 @@ public class FileServiceImpl implements FileService {
             throw new IllegalArgumentException("Invalid file name");
         }
 
-        String fullPath = path + File.separator + fileName;
-        InputStream is = new FileInputStream(fullPath);
-        // db logic to return inputstream
-        return is;
+        return new FileInputStream(path + File.separator + fileName);
     }
 }

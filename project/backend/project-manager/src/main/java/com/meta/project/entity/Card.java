@@ -2,13 +2,10 @@ package com.meta.project.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
@@ -17,8 +14,7 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @ToString(exclude = {"board", "boardList", "comments", "todos"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
@@ -88,7 +84,6 @@ public class Card {
     private LocalDateTime dateTo;
     private Boolean isCompleted = false;
 
-    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -101,8 +96,9 @@ public class Card {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime createdAt = LocalDateTime.now();  // Local variable
+        updatedAt = createdAt;
+        // You can log or use createdAt here if needed.
     }
 
     @PreUpdate

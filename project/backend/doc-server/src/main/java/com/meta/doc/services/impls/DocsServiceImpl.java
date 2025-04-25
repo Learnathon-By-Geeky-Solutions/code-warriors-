@@ -6,22 +6,28 @@ import com.meta.doc.mapper.DocsMapper;
 import com.meta.doc.repositories.DocsRepo;
 import com.meta.doc.services.DocsService;
 import com.meta.doc.services.RedisService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 import java.util.List;
 
+/**
+ * Implementation of DocsService for managing document operations.
+ */
 @Service
 @Transactional(readOnly = true)
 public class DocsServiceImpl implements DocsService {
 
     private final DocsRepo docsRepository;
-
-    @Autowired
-    private RedisService redisService;
+    private final RedisService redisService;
     private static final long CACHE_TTL = 3600;
+
+    /**
+     * Constructor-based dependency injection.
+     * @param docsRepository The repository for document persistence.
+     * @param redisService The service for caching documents.
+     */
     public DocsServiceImpl(DocsRepo docsRepository, RedisService redisService) {
         this.docsRepository = docsRepository;
         this.redisService = redisService;
@@ -81,7 +87,6 @@ public class DocsServiceImpl implements DocsService {
 
         return doc;
     }
-
 
     @Override
     @Transactional
@@ -197,8 +202,44 @@ public class DocsServiceImpl implements DocsService {
         return doc.getRootGrandparentId();
     }
 
-    private void invalidateDocCache(String id) {
-        redisService.delete("doc:" + id);
-        redisService.delete("docs:all");
+
+    @Override
+    public DocsDTO convertToDTO(Docs docs) {
+        if (docs == null) {
+            return null;
+        }
+        String parentId = (docs.getParent() != null) ? docs.getParent().getId() : null;
+        List<DocsDTO> childrenDTO = docs.getChildren().stream()
+                .map(this::convertToDTO) // Recursively convert children to DTOs
+                .toList();
+
+        // Assuming 'level' can be retrieved directly from the Docs entity if it exists,
+        // otherwise, you might need to calculate or fetch it.
+        // If Docs entity doesn't have getLevel(), you might need to remove this or handle it differently.
+        Integer level = null;
+        // Check if getLevel() method exists (using try-catch for now, better to check entity definition)
+        try {
+            java.lang.reflect.Method getLevelMethod = Docs.class.getMethod("getLevel");
+            level = (Integer) getLevelMethod.invoke(docs);
+        } catch (NoSuchMethodException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
+            // Handle the case where getLevel() doesn't exist.
+            // You might want to set a default value or fetch it from somewhere else.
+            level = 0; // Defaulting to 0 if getLevel() is not found
+        }
+
+
+        return DocsDTO.builder()
+                .id(docs.getId())
+                .teamId(docs.getTeamId())
+                .officeId(docs.getOfficeId())
+                .title(docs.getTitle())
+                .content(docs.getContent())
+                .parentId(parentId)
+                .rootGrandparentId(docs.getRootGrandparentId())
+                .children(childrenDTO) // Using the list of DTOs for children
+                .level(level)
+                // .files(...) // Handle files based on your requirements
+                .build();
     }
+
 }

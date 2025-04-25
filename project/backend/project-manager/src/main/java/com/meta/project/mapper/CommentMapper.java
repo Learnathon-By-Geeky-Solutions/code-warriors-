@@ -17,7 +17,6 @@ public class CommentMapper {
         dto.setImage(comment.getImage());
         dto.setUserId(comment.getUserId());
         dto.setCardId(comment.getCard() != null ? comment.getCard().getId() : null);
-        dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
         return dto;
     }
@@ -30,8 +29,6 @@ public class CommentMapper {
         comment.setText(dto.getText());
         comment.setImage(dto.getImage());
         comment.setUserId(dto.getUserId());
-        // Set card reference in service layer
-        comment.setCreatedAt(dto.getCreatedAt());
         comment.setUpdatedAt(dto.getUpdatedAt());
         return comment;
     }

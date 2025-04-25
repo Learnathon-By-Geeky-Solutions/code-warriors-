@@ -1,0 +1,134 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding: 1rem 0;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+.officeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 0.5rem;
+}
+
+.officeCard {
+  aspect-ratio: 16/10;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.officeCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.officeLogo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.officeIcon {
+  font-size: 2.5rem;
+  opacity: 0.9;
+}
+
+.officeName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.plusCard {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border: 2px dashed;
+  background-color: transparent;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.plusCard:hover {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+.plusIcon {
+  font-size: 2rem;
+}
+
+.plusText {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.message {
+  text-align: center;
+  font-size: 1.125rem;
+  margin: 2rem 0;
+  opacity: 0.8;
+}
+
+.error {
+  text-align: center;
+  color: #ef4444;
+  margin: 2rem 0;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .officeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .officeGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .officeCard {
+    aspect-ratio: 16/9;
+  }
+}

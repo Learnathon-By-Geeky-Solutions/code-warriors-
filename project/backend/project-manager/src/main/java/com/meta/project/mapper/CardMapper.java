@@ -24,6 +24,18 @@ public class CardMapper {
         this.todoMapper = todoMapper;
     }
 
+    private List<CommentDTO> mapCommentsToDTOs(List<Comment> comments) {
+        return comments != null ? comments.stream()
+                .map(commentMapper::toDTO)
+                .collect(Collectors.toList()) : new ArrayList<>();
+    }
+
+    private List<TodoDTO> mapTodosToDTOs(List<Todo> todos) {
+        return todos != null ? todos.stream()
+                .map(todoMapper::toDTO)
+                .collect(Collectors.toList()) : new ArrayList<>();
+    }
+
     public CardDTO toDTO(Card card) {
         if (card == null) {
             return null;
@@ -49,24 +61,31 @@ public class CardMapper {
         dto.setTrackedTimes(new ArrayList<>(card.getTrackedTimes()));
         dto.setIsCompleted(card.getIsCompleted());
         dto.setDateTo(card.getDateTo());
-        dto.setCreatedAt(card.getCreatedAt());
         dto.setUpdatedAt(card.getUpdatedAt());
-
-        if (card.getComments() != null && !card.getComments().isEmpty()) {
-            List<CommentDTO> commentDTOs = card.getComments().stream()
-                    .map(commentMapper::toDTO)
-                    .collect(Collectors.toList());
-            dto.setComments(commentDTOs);
-        }
-
-        if (card.getTodos() != null && !card.getTodos().isEmpty()) {
-            List<TodoDTO> todoDTOs = card.getTodos().stream()
-                    .map(todoMapper::toDTO)
-                    .collect(Collectors.toList());
-            dto.setTodos(todoDTOs);
-        }
+        dto.setComments(mapCommentsToDTOs(card.getComments()));
+        dto.setTodos(mapTodosToDTOs(card.getTodos()));
         dto.setMemberIds(new ArrayList<>(card.getMembers()));
         return dto;
+    }
+
+    private List<Comment> mapCommentDTOsToEntities(List<CommentDTO> commentDTOs, Card card) {
+        return commentDTOs != null ? commentDTOs.stream()
+                .map(dto -> {
+                    Comment comment = commentMapper.toEntity(dto);
+                    comment.setCard(card);
+                    return comment;
+                })
+                .collect(Collectors.toList()) : new ArrayList<>();
+    }
+
+    private List<Todo> mapTodoDTOsToEntities(List<TodoDTO> todoDTOs, Card card) {
+        return todoDTOs != null ? todoDTOs.stream()
+                .map(dto -> {
+                    Todo todo = todoMapper.toEntity(dto);
+                    todo.setCard(card);
+                    return todo;
+                })
+                .collect(Collectors.toList()) : new ArrayList<>();
     }
 
     public Card toEntity(CardDTO cardDTO) {
@@ -96,21 +115,8 @@ public class CardMapper {
         card.setIsCompleted(cardDTO.getIsCompleted());
         card.setDateTo(cardDTO.getDateTo());
 
-        if (cardDTO.getComments() != null && !cardDTO.getComments().isEmpty()) {
-            List<Comment> comments = cardDTO.getComments().stream()
-                    .map(commentMapper::toEntity)
-                    .collect(Collectors.toList());
-            comments.forEach(comment -> comment.setCard(card));
-            card.setComments(comments);
-        }
-
-        if (cardDTO.getTodos() != null && !cardDTO.getTodos().isEmpty()) {
-            List<Todo> todos = cardDTO.getTodos().stream()
-                    .map(todoMapper::toEntity)
-                    .collect(Collectors.toList());
-            todos.forEach(todo -> todo.setCard(card));
-            card.setTodos(todos);
-        }
+        card.setComments(mapCommentDTOsToEntities(cardDTO.getComments(), card));
+        card.setTodos(mapTodoDTOsToEntities(cardDTO.getTodos(), card));
 
         if (cardDTO.getMemberIds() != null) {
             card.setMembers(new HashSet<>(cardDTO.getMemberIds()));

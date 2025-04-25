@@ -1,0 +1,62 @@
+/* app/office/[id]/team/[teamId]/MeetingSidebar.module.css */
+.sidebar {
+  width: 300px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease;
+  position: fixed;
+  top: 70px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.meetSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sidebarTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.meetingList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.meetingCard {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.meetingCard:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.meetingTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.meetingDate {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}

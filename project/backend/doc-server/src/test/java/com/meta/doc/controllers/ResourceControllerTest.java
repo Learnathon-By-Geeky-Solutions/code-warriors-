@@ -1,69 +1,56 @@
 package com.meta.doc.controllers;
 
 import com.meta.doc.BaseIntegrationTest;
-import com.meta.doc.dtos.DocsDTO;
-import com.meta.doc.services.DocsService;
+import com.meta.doc.services.FileService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.http.HttpStatus;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.nio.file.Path;
-import java.util.UUID;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+
+import static org.mockito.Mockito.when;
+
 
 @AutoConfigureMockMvc
 class ResourceControllerTest extends BaseIntegrationTest {
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private DocsService docsService;
+    @MockitoBean
+    private FileService fileService;
 
-    @TempDir
-    Path tempDir;
-
-    private DocsDTO testDoc;
+    private final String TEST_DOC_ID = "test-doc-id";
+    private final String TEST_FILE_NAME = "test-file.txt";
+    private final String NON_EXISTENT_FILE = "nonexistent.txt";
 
     @BeforeEach
-    void setUp() {
-        // Create a test document
-        DocsDTO doc = new DocsDTO(
-            UUID.randomUUID().toString(),
-            "team1",
-            "office1",
-            "Test Doc",
-            "Test Content",
-            null,
-            null,
-            0
-        );
-        testDoc = docsService.saveDocs(doc);
+    void setUp() throws FileNotFoundException {
+        // Mock FileService behavior for a valid file
+        when(fileService.getResource(TEST_DOC_ID, TEST_FILE_NAME))
+                .thenReturn(new ByteArrayInputStream("Test file content".getBytes()));
+
+        // Mock FileService behavior for an invalid file
+        when(fileService.getResource(Mockito.anyString(), Mockito.eq(NON_EXISTENT_FILE)))
+                .thenThrow(new RuntimeException("File not found"));
     }
 
-    private String uploadFile(String filename, String contentType, byte[] content) throws Exception {
-        MockMultipartFile file = new MockMultipartFile(
-            "file",
-            filename,
-            contentType,
-            content
-        );
 
-        String response = mockMvc.perform(MockMvcRequestBuilders.multipart("/ds/v1/docs/{documentId}/files", testDoc.getId())
-                .file(file))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
 
-        // Extract and return the stored filename from the response
-        return response.split("\"storedFileName\":\"")[1].split("\"")[0];
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
-
-    
-} 
+}
