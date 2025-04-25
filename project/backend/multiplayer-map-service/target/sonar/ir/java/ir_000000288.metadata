@@ -1,8 +1,0 @@
-com.map.metahive.model.Room#addPlayer(Lcom/map/metahive/model/Player;)V
-false
-090be2888ca0170b625af7fa1ddcc74b
-java.lang.IllegalArgumentException#<init>(Ljava/lang/String;)V
-java.lang.IllegalArgumentException#instance-init#
-==
-getId com.map.metahive.model.Player#getId()Ljava/lang/String;
-put java.util.Map#put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
