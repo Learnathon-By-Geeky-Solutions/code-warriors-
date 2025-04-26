@@ -1,0 +1,38 @@
+/* src/styles/variables.css */
+
+:root {
+  /* Colors */
+  --color-primary: #4A90E2;
+  --color-primary-hover: #357ABD;
+  --color-secondary: #50E3C2;
+  --color-secondary-hover: #3CBBAA;
+  --color-text-light: #333333;
+  --color-text-dark: #FFFFFF;
+  --color-background-light: #FFFFFF;
+  --color-background-dark: #1A1A1A;
+  --color-modal-background-light: #FFFFFF;
+  --color-modal-background-dark: #2C2C2C;
+  
+  /* Spacing */
+  --spacing-small: 8px;
+  --spacing-medium: 16px;
+  --spacing-large: 24px;
+  
+  /* Typography */
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
+  /* Border */
+  --border-radius: 8px;
+  
+  /* Input Border */
+  --input-border: #ccc;
+  
+  /* Modal Variables */
+  --modal-background: var(--color-modal-background-light);
+  --modal-background-dark: var(--color-modal-background-dark);
+  
+  /* Button Text */
+  --button-text: #FFFFFF;
+  
+  /* ...other variables */
+}
