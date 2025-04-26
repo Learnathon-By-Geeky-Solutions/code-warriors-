@@ -1,15 +1,18 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 plugins {
 	id 'java'
-	// Consider using a released Spring Boot version (e.g., 3.3.0 or 3.2.6) unless you specifically need 3.4.1 features
 	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco' // Ensure JaCoCo plugin is applied
-	// Use a more recent SonarQube plugin version if possible (e.g., 4.4.1.3373)
-	id 'org.sonarqube' version '4.4.1.3373' // Updated plugin version
+	id("org.graalvm.buildtools.native") version "0.10.6"
+	id 'jacoco'
+	id 'org.sonarqube' version '4.4.1.3373'
+}
+ext { // Optional but good practice: define version in one place
+	lombokVersion = '1.18.32' // Or choose another recent stable version
 }
 
-group = 'com.meta' // Adjust if this service has a different group
-version = '0.0.1-SNAPSHOT' // Adjust if needed
+group = 'com.meta'
+version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
@@ -17,7 +20,6 @@ java {
 	}
 }
 
-// Lombok configuration scope
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -28,14 +30,20 @@ repositories {
 	mavenCentral()
 }
 
+
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools' // Optional: for local development
-	runtimeOnly 'com.mysql:mysql-connector-j' // Or the specific DB connector you use
-	annotationProcessor 'org.projectlombok:lombok'
+
+	compileOnly "org.projectlombok:lombok:${lombokVersion}"
+
+	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools:3.2.5'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 	// Testcontainers
 	testImplementation 'org.testcontainers:testcontainers:1.19.7'
 	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
@@ -43,65 +51,57 @@ dependencies {
 
 	// Spring Boot Testcontainers integration
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	// testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // Usually included via spring-boot-starter-test
-}
+	implementation(platform(SpringBootPlugin.BOM_COORDINATES))
+	implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.15.0"))
 
+	implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
+	implementation("io.opentelemetry:opentelemetry-api")
+	implementation("io.opentelemetry:opentelemetry-sdk")
+	implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
+
+	//alpha module
+	implementation("io.opentelemetry.semconv:opentelemetry-semconv")
+	// for otelCustomizer in Application.java
+	implementation("io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha")
+}
 jacoco {
-	toolVersion = "0.8.11" // Updated JaCoCo version for consistency
+	toolVersion = "0.8.11"
 }
 
-// ✅ JaCoCo test report configuration
 jacocoTestReport {
-	dependsOn test // Ensures tests run before reports are generated
+	dependsOn test
 	reports {
-		xml.required = true  // Required for SonarCloud
-		html.required = false // Disable HTML report if not needed
-		csv.required = false  // Disable CSV report if not needed
+		xml.required = true
+		html.required = false
+		csv.required = false
 	}
-	// Define class/package exclusions for coverage report
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, excludes: [
-					'**/config/**',       // Configuration classes
-					'**/exception/**',    // Custom exception classes
-					'**/model/**',       // Data models / entities (often simple structures) - adjust if they have logic
-					'**/dto/**',         // Data transfer objects
-					'**/Application*',    // Main application class
-					// Add any other packages/classes specific to this service to exclude
+					'**/config/**',
+					'**/exception/**',
+					'**/model/**',
+					'**/dto/**',
+					'**/Application*',
 			])
 		}))
 	}
 }
 
-// ✅ SonarQube (SonarCloud) configuration
 sonarqube {
 	properties {
-		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-" // CHANGE THIS if this service is a *separate* project in SonarCloud
-		property "sonar.organization", "learnathon-by-geeky-solutions" // Corrected org name based on previous example
+		property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+		property "sonar.organization", "learnathon-by-geeky-solutions"
 		property "sonar.host.url", "https://sonarcloud.io"
-		// Remove sonar.login - Pass token via command line arg in CI (-Dsonar.login=...)
-		// property "sonar.login", System.getenv("SONAR_TOKEN") // Avoid this here
-
-		// Define coverage exclusions for SonarCloud reporting (mirror JaCoCo or adjust)
 		property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
-
-		// Explicitly setting this is often redundant if JaCoCo plugin is applied correctly, but doesn't hurt
 		property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-
-		// Other properties like sonar.sources, sonar.java.binaries are usually inferred correctly
 	}
 }
 
-// ✅ Test task configuration
-tasks.named('test', Test) { // Specify Test type
+tasks.named('test', Test) {
 	useJUnitPlatform()
-	// Add JVM args consistent with other services if needed for testing environment/libraries
 	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
 	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-	systemProperty "mockito.mock.creation.default", "mock-maker-inline" // If using Mockito inline mocking
-
-	finalizedBy jacocoTestReport // Hook JaCoCo report generation to run after tests finish
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline"
+	finalizedBy jacocoTestReport
 }
-
-// Removed the custom print task as it's not needed for the final SonarCloud setup
-// task printRuntimeClasspath { ... }
