@@ -26,7 +26,7 @@ declare global {
 }
 
 const Page: React.FC = () => {
-  const { isAuthenticated, user } = useAuth(); // you can get userId from user?.sub
+  const { isAuthenticated, user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [labelingResponse, setLabelingResponse] =
     useState<LabelingResponse | null>(null);
@@ -36,14 +36,15 @@ const Page: React.FC = () => {
   const [geminiResponse, setGeminiResponse] = useState<string | null>(null);
   const [geminiComparisonOutput, setGeminiComparisonOutput] = useState<
     string | null
-  >(null); // New State
+  >(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(
     null
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const workNow = "image processing frontend code"; // Current work
-  const officeId = "5a9afb0a-af63-4413-bb95-25b981957c00"; // Office ID
+  const workNow = "image processing frontend code";
+  const officeId = process.env.NEXT_PUBLIC_OFFICE_ID!;
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -60,7 +61,7 @@ const Page: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          displaySurface: "monitor", // Changed from "browser" to "monitor"
+          displaySurface: "monitor",
           width: { ideal: screen.width },
           height: { ideal: screen.height },
         },
@@ -76,7 +77,6 @@ const Page: React.FC = () => {
       }
 
       const imageCapture = new ImageCaptureConstructor(track);
-
       const bitmap = await imageCapture.grabFrame();
 
       if (canvasRef.current) {
@@ -95,7 +95,6 @@ const Page: React.FC = () => {
         const file = new File([blob], "screenshot.png", { type: "image/png" });
 
         setSelectedImage(file);
-
         track.stop();
       }
     } catch (err) {
@@ -111,7 +110,7 @@ const Page: React.FC = () => {
     if (!labelingData || !textData) return null;
 
     try {
-      const apiKeyGemini = "AIzaSyC6WC7v6rYTZmKXe6uLyWo86xSb76vJqY8";
+      const apiKeyGemini = process.env.NEXT_PUBLIC_GEMINI_API_KEY!;
       const prompt = `Labeling Data: ${JSON.stringify(
         labelingData
       )}\nExtracted Text: ${
@@ -120,9 +119,7 @@ const Page: React.FC = () => {
 
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKeyGemini}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-        }
+        { contents: [{ parts: [{ text: prompt }] }] }
       );
 
       const geminiSummary =
@@ -142,14 +139,12 @@ const Page: React.FC = () => {
     geminiOutput: string
   ): Promise<string | null> => {
     try {
-      const apiKeyGemini = "AIzaSyC6WC7v6rYTZmKXe6uLyWo86xSb76vJqY8";
+      const apiKeyGemini = process.env.NEXT_PUBLIC_GEMINI_API_KEY!;
       const prompt = `Current Work: ${workNow}\nGemini Output: ${geminiOutput}\nCompare whether they are almost similar type of task , If the similarity is almost 20% then return true or false .I will store it in database as boolean just return true or false. Never give any other response than true or false.It will directly store in database.`;
 
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKeyGemini}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-        }
+        { contents: [{ parts: [{ text: prompt }] }] }
       );
 
       const geminiComparison =
@@ -184,7 +179,7 @@ const Page: React.FC = () => {
       labelingFormData.append("image", selectedImage);
 
       const myHeaders = new Headers();
-      myHeaders.append("apikey", "v5OivDY0xluMAYwI0mCySzaPcOItUVR8");
+      myHeaders.append("apikey", process.env.NEXT_PUBLIC_IMAGE_LABELING_API_KEY!);
 
       const labelingRequestOptions: RequestInit = {
         method: "POST",
@@ -219,14 +214,12 @@ const Page: React.FC = () => {
       setTextResponse(textData);
       URL.revokeObjectURL(imageUrl);
 
-      // Process Gemini APIs sequentially and await their results
       const geminiSummary = await processGeminiAPI(labelingData, textData);
       const geminiComparison = await processGeminiAPI2(
         workNow,
         geminiSummary || ""
       );
 
-      // Track screen after all processing
       if (user?.sub && geminiSummary) {
         try {
           await screenTrackingService.trackScreen(
@@ -247,7 +240,6 @@ const Page: React.FC = () => {
         });
       }
 
-      // Clear the processing notice timeout
       clearTimeout(processingNotice);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -257,6 +249,7 @@ const Page: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
   return (
     <div className="p-5">
       <h1 className="text-2xl font-bold mb-4">Image Processing APIs</h1>
