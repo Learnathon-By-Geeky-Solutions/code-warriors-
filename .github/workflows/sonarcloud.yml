@@ -28,14 +28,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Make gradlew executable in backend
-        # Only need to make the root gradlew executable
+      - name: Make gradlew executable
         run: chmod +x project/backend/gradlew
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
-          # Cache is relative to the runner workspace root
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
@@ -45,23 +43,17 @@ jobs:
 
       - name: Build, Run Tests and Generate JaCoCo Reports
         working-directory: ./project/backend # Run gradle from the backend root
-        # 'build' task usually depends on 'test', which triggers jacocoTestReport
-        # --continue allows analysis even if some tests fail
-        run: ./gradlew build --continue --info
+        # Use --continue to proceed even if some tests fail
+        run: ./gradlew build jacocoAggregateReport --continue --info
 
       - name: SonarCloud Scan
-        # Run even if the build step had test failures (--continue)
+        # Run even if the build step had test failures
         if: success() || failure()
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
-          # Set the base directory for the Sonar analysis (where gradlew is)
+          # Set the base directory for the Sonar analysis
           projectBaseDir: project/backend
-          # args: > # No args needed here! Plugin gets config from build.gradle/properties
-            # -Dsonar.projectKey=... # Define in build.gradle or gradle.properties
-            # -Dsonar.organization=... # Define in build.gradle or gradle.properties
-            # -Dsonar.host.url=https://sonarcloud.io # Define in build.gradle or gradle.properties
+          # No additional args needed since configuration is in build.gradle
         env:
-          # Define the SonarCloud token in your GitHub repository secrets
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          # GITHUB_TOKEN is automatically provided by Actions, required for PR decoration
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
