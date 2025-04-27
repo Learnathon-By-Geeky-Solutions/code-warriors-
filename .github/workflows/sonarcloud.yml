@@ -42,9 +42,18 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build, Run Tests and Generate JaCoCo Reports
-        working-directory: ./project/backend # Run gradle from the backend root
-        # Use --continue to proceed even if some tests fail
+        working-directory: ./project/backend 
         run: ./gradlew build jacocoAggregateReport --continue --info
+      - name: Upload Test Reports
+        # Always upload reports, especially on failure, to see what went wrong
+        if: always() # Run this even if previous steps fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.run_id }} # Unique name per run
+          path: |
+            project/backend/*/build/reports/tests/test/ # Upload all test reports
+            project/backend/build/reports/problems/     # Upload problems report
+          retention-days: 7 # Keep reports for 7 days
 
       - name: SonarCloud Scan
         # Run even if the build step had test failures
@@ -62,9 +71,7 @@ jobs:
             -Dsonar.java.source=21
             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/aggregate/jacoco.xml
             -Dsonar.coverage.exclusions=**/config/**,**/exception/**,**/model/**,**/dto/**,**/*Application*
-            -Dsonar.java.binaries=*/build/classes/java/main
-            -Dsonar.sources=*/src/main/java
-            -Dsonar.tests=*/src/test/java
+           
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

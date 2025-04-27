@@ -119,10 +119,6 @@ task jacocoAggregateReport(type: JacocoReport) {
     classDirectories.setFrom files(jacocoProjects.collect { it.sourceSets.main.output })
 
     // Collect execution data files safely during configuration.
-    // The .filter { it.exists() } here will filter based on file existence *at configuration time*.
-    // If test.exec files are generated later, this might still miss them initially,
-    // but the dependsOn test should ensure they exist before this task *runs*.
-    // Crucially, we don't modify this collection during the execution phase.
     executionData.setFrom files(jacocoProjects.collect {
         file("${it.buildDir}/jacoco/test.exec")
     }).filter { it.exists() }
@@ -137,28 +133,6 @@ task jacocoAggregateReport(type: JacocoReport) {
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
         xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.xml') // Match Sonar path
         csv.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.csv')
-    }
-
-    // --- REMOVED doFirst block ---
-    // The modification of executionData inside doFirst caused the error.
-    // Input configuration must happen during Gradle's configuration phase.
-}
-
-// === SonarQube Configuration ===
-sonarqube {
-    properties {
-        property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
-        property "sonar.organization", "learnathon-by-geeky-solutions"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.java.source", "21" // Ensure this matches your toolchain
-        property "sonar.gradle.skipCompile", "true" // Rely on Gradle's build lifecycle
-
-        // Point Sonar to the *manually generated* aggregate XML report path
-        property "sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get().asFile}/reports/jacoco/aggregate/jacoco.xml"
-
-        // Coverage exclusions (applied project-wide)
-        property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/*Application*"
     }
 }
 
