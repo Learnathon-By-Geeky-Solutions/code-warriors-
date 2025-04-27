@@ -53,7 +53,18 @@ jobs:
         with:
           # Set the base directory for the Sonar analysis
           projectBaseDir: project/backend
-          # No additional args needed since configuration is in build.gradle
+          # Define all properties in command line args similar to Maven example
+          args: >
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
+            -Dsonar.organization=learnathon-by-geeky-solutions
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.java.source=21
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/aggregate/jacoco.xml
+            -Dsonar.coverage.exclusions=**/config/**,**/exception/**,**/model/**,**/dto/**,**/*Application*
+            -Dsonar.java.binaries=*/build/classes/java/main
+            -Dsonar.sources=*/src/main/java
+            -Dsonar.tests=*/src/test/java
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
