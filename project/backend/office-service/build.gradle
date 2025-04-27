@@ -6,8 +6,8 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2024.0.0")
-    set('testcontainersVersion', "1.19.7")
+    set('springCloudVersion', "2024.0.0") // Or the version compatible with your Spring Boot version
+    set('testcontainersVersion', "1.19.7") // Or newer like 1.19.8
 }
 
 group = 'com.meta'
@@ -30,17 +30,17 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
-    implementation 'org.modelmapper:modelmapper:2.1.1'
-    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
-    implementation 'org.keycloak:keycloak-core:22.0.1'
+    // implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0' // Usually UI includes API
+    implementation 'org.modelmapper:modelmapper:3.1.1' // Consider newer version
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2' // Be careful with this in production/CI
+    implementation 'org.keycloak:keycloak-core:24.0.4' // Consider newer version
     implementation 'com.auth0:java-jwt:4.4.0'
-    implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j' // Ensure version matches springCloudVersion
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+    runtimeOnly 'com.mysql:mysql-connector-j:8.4.0' // Consider newer version
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -49,9 +49,13 @@ dependencies {
     testImplementation 'io.rest-assured:xml-path:5.4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // Testcontainers dependencies managed by BOM
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
+
+    // === ADD THIS IF YOU ENCOUNTER THE KOTLIN ERROR ===
+    // testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 dependencyManagement {
@@ -63,10 +67,12 @@ dependencyManagement {
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport // Runs jacoco report after tests
 
+    // Arguments needed for Mockito/ByteBuddy on newer JDKs
     jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
     jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+    // Optional: Only needed if you use Mockito inline mocking
     systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }
 
@@ -75,19 +81,18 @@ jacoco {
 }
 
 jacocoTestReport {
-    dependsOn test
+    dependsOn test // Ensure tests run first
 
     reports {
-        xml.required = true
-        html.required = true
+        xml.required = true // For Sonar
+        html.required = true // For local viewing
         csv.required = false
 
+        // Standard output locations are usually fine, but explicit is okay too
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
         xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
         csv.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.csv')
     }
 }
-tasks.named('test', Test) {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
+
+// --- REMOVED Duplicate tasks.named('test') block ---

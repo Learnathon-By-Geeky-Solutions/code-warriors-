@@ -1,17 +1,19 @@
-import org.springframework.boot.gradle.plugin.SpringBootPlugin
+import org.springframework.boot.gradle.plugin.SpringBootPlugin // Keep if using the BOM constant
 
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
+	id 'org.springframework.boot' // Version managed by Boot plugin usually
 	id 'io.spring.dependency-management'
 	id 'jacoco'
-	id 'org.sonarqube' version '4.4.1.3373'
-	id 'org.graalvm.buildtools.native' version '0.10.6'
+	// REMOVED: id 'org.sonarqube' version '4.4.1.3373' // Configured in root
+	// REMOVED (if not using native): id 'org.graalvm.buildtools.native' version '0.10.6'
 }
 
 ext {
-	lombokVersion = '1.18.32'
-	openTelemetryVersion = '2.15.0'
+	// Consider moving common versions to root gradle.properties or ext block
+	lombokVersion = '1.18.32' // Or newer like 1.18.34
+	openTelemetryVersion = '2.15.0' // Check for newer stable releases if needed
+	testcontainersVersion = '1.19.8' // Updated from 1.19.7
 }
 
 group = 'com.meta'
@@ -35,8 +37,10 @@ repositories {
 
 dependencyManagement {
 	imports {
-		mavenBom SpringBootPlugin.BOM_COORDINATES
+		mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
 		mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+		// It's good practice to manage Testcontainers via BOM too
+		mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
 	}
 }
 
@@ -54,35 +58,43 @@ dependencies {
 	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
 	// Database
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0' // Updated
 
 	// Developer Tools
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	// OpenTelemetry
+	// OpenTelemetry (Versions managed by BOM)
 	implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
 	implementation 'io.opentelemetry:opentelemetry-api'
 	implementation 'io.opentelemetry:opentelemetry-sdk'
 	implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
 	implementation 'io.opentelemetry:opentelemetry-exporter-logging'
 	implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
-	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5'
-	implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha'
+	runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5' // Check compatibility if OTel version changes
+	implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Check if BOM covers this or if newer exists
 
 	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.testcontainers:testcontainers:1.19.7'
-	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
-	testImplementation 'org.testcontainers:mysql:1.19.7'
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers' // Integrates Boot + Testcontainers
+
+	// Testcontainers (Versions managed by BOM)
+	testImplementation 'org.testcontainers:testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:mysql'
+
+	// ADDED: Kotlin stdlib needed for Testcontainers/OkHttp runtime
+	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	// ADDED: Explicit test runtime launcher
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 jacoco {
-	toolVersion = "0.8.11"
+	toolVersion = "0.8.11" // Ensure matches root project
 }
 
 jacocoTestReport {
-	dependsOn test
+	// REMOVED: dependsOn test // Redundant due to finalizedBy in test task
 
 	reports {
 		xml.required = true
@@ -97,6 +109,12 @@ jacocoTestReport {
 
 tasks.named('test', Test) {
 	useJUnitPlatform()
-	finalizedBy jacocoTestReport
+	finalizedBy jacocoTestReport // Correct: run report *after* tests finish
+
+	// ADDED: JVM args for modern JDKs + Mockito/ByteBuddy if used
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+	jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+	// ADDED: System property needed for Mockito inline mocking
+	systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }
 
