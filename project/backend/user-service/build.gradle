@@ -1,18 +1,93 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 plugins {
     id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+    id 'org.sonarqube' version '4.4.1.3373'
+}
+
+group = 'com.example' // 🔥 Change as per your project
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    lombokVersion = '1.18.32'
 }
 
 dependencies {
+    // Core web and security
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    implementation 'org.keycloak:keycloak-admin-client:24.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    implementation 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    // *** ADD THIS LINE *** - For JPA and Hibernate
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    // Keycloak Admin Client
+    implementation 'org.keycloak:keycloak-admin-client:24.0.1'
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // OpenAPI / Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+    // *** CHANGE THIS LINE *** - Make H2 available at runtime for the 'test' profile
+    runtimeOnly 'com.h2database:h2' // Changed from testImplementation
+
+    // Testing dependencies (keep as testImplementation)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // Optional: if you want testcontainers later, add here
+    // testImplementation 'org.testcontainers:junit-jupiter'
+    // testImplementation 'org.testcontainers/testcontainers'
+
+    // Spring Boot BOM
+    implementation platform(SpringBootPlugin.BOM_COORDINATES)
+}
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = false
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, excludes: [
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/model/**',
+                    '**/dto/**',
+                    '**/Application*',
+            ])
+        }))
+    }
+}
+
+
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }

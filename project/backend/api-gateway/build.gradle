@@ -1,7 +1,15 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    id 'org.springframework.boot' version '3.4.1' // Add version explicitly
+    id 'io.spring.dependency-management' version '1.1.7' // Add version explicitly
+    id 'jacoco' // Add jacoco for code coverage
+}
+
+group = 'com.example' // <- optional, but usually added
+version = '0.0.1-SNAPSHOT' // <- optional
+
+java {
+    sourceCompatibility = 21// or 21 if you're using it
 }
 
 ext {
@@ -24,4 +32,27 @@ dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
+}
+
+// Jacoco test coverage config
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // always generate report after tests
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
+    }
+}
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }

@@ -109,14 +109,7 @@
 				</execution>
 			</executions>
 				<configuration>
-					<sonar.projectKey>Learnathon-By-Geeky-Solutions_code-warriors-</sonar.projectKey>  <sonar.organization>learnathon-by-geeky-solutions</sonar.organization>  <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-					<sonar.coverage.exclusions>
-						com/map/MetaHive/config/**,
-						com/map/MetaHive/exception/**,
-						com/map/MetaHive/model/**,
-						com/map/MetaHive/dto/**,
-						com/map/MetaHive/MetaHiveApplication.class
-					</sonar.coverage.exclusions>
+
 				</configuration>
 			</plugin>
 		</plugins>

@@ -2,12 +2,14 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.1' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'jacoco'
+    id 'org.sonarqube' version '4.4.1.3373'
 }
 
 allprojects {
     group = 'com.meta'
     version = '0.0.1-SNAPSHOT'
-    
+
     repositories {
         mavenCentral()
     }
@@ -15,19 +17,139 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    
+    apply plugin: 'jacoco'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
-    
-    tasks.named('test', Test) {
+
+    jacoco {
+        toolVersion = "0.8.11"
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+            html.required = true
+            csv.required = false
+
+            // Explicitly set output locations with the new API
+            html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
+            xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
+            csv.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.csv')
+        }
+    }
+
+    test {
         useJUnitPlatform()
+        finalizedBy jacocoTestReport
+
         jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
         jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
         systemProperty "mockito.mock.creation.default", "mock-maker-inline"
-
-        enabled = false
     }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+        // Make Flyway optional in case some services don't need it
+        implementation 'org.flywaydb:flyway-core'
+        implementation 'org.flywaydb:flyway-mysql'
+
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
+        implementation 'org.modelmapper:modelmapper:2.1.1'
+        implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+        implementation 'org.keycloak:keycloak-core:22.0.1'
+        implementation 'com.auth0:java-jwt:4.4.0'
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+        testImplementation 'io.rest-assured:rest-assured:5.4.0'
+        testImplementation 'io.rest-assured:json-path:5.4.0'
+        testImplementation 'io.rest-assured:xml-path:5.4.0'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        // Testcontainers
+        testImplementation 'org.testcontainers:testcontainers:1.19.7'
+        testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+        testImplementation 'org.testcontainers:mysql:1.19.7'
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
+            mavenBom "org.testcontainers:testcontainers-bom:1.19.7"
+        }
+    }
+}
+
+// JaCoCo aggregate report configuration
+def jacocoProjects = subprojects.findAll { project ->
+    // Include only projects that have the jacoco plugin applied
+    project.plugins.hasPlugin('jacoco')
+}
+
+task jacocoAggregateReport(type: JacocoReport) {
+    group = 'verification'
+    description = 'Generates an aggregate JaCoCo report for all covered subprojects.'
+
+    // Use more robust way of depending on tests
+    dependsOn jacocoProjects.collect { it.tasks.named('test') }
+
+    // Use the new property API
+    additionalSourceDirs.setFrom files(jacocoProjects.collect { it.sourceSets.main.allSource.srcDirs })
+    sourceDirectories.setFrom files(jacocoProjects.collect { it.sourceSets.main.allSource.srcDirs })
+    classDirectories.setFrom files(jacocoProjects.collect { it.sourceSets.main.output })
+
+    // Only include execution data files that exist
+    executionData.setFrom files(jacocoProjects.collect {
+        file("${it.buildDir}/jacoco/test.exec")
+    }).filter { it.exists() }
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+
+        // Explicitly set output locations with the new API
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
+        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.xml')
+        csv.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.csv')
+    }
+
+    doFirst {
+        executionData.setFrom files(executionData.files.findAll { it.exists() })
+
+        if (executionData.files.empty) {
+            logger.warn("No JaCoCo execution data files found. Code coverage report may be empty.")
+        }
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "Learnathon-By-Geeky-Solutions_code-warriors-"
+        property "sonar.organization", "learnathon-by-geeky-solutions"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.gradle.skipCompile", "true"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/aggregate/jacoco.xml"
+        property "sonar.coverage.exclusions", "**/config/**,**/exception/**,**/model/**,**/dto/**,**/Application*"
+    }
+}
+
+// Make sure sonarqube task depends on jacocoAggregateReport
+tasks.named('sonarqube').configure {
+    dependsOn jacocoAggregateReport
 }

@@ -2,6 +2,6 @@ rootProject.name = 'meta-backend'
 
 include 'api-gateway'
 include 'doc-server'
-include 'office-service' 
+include 'office-service'
 include 'project-manager'
 include 'user-service'
