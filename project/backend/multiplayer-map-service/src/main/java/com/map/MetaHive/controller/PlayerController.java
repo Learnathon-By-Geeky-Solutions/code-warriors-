@@ -1,12 +1,12 @@
-package com.map.metahive.controller;
+package com.map.MetaHive.controller;
 
-import com.map.metahive.dto.CreateRoomRequest;
-import com.map.metahive.dto.JoinRoomRequest;
-import com.map.metahive.dto.LeaveRoomRequest;
-import com.map.metahive.model.Player;
-import com.map.metahive.model.Room;
-import com.map.metahive.service.GameSessionService;
-import com.map.metahive.service.SpawnPointService;
+import com.map.MetaHive.dto.CreateRoomRequest;
+import com.map.MetaHive.dto.JoinRoomRequest;
+import com.map.MetaHive.dto.LeaveRoomRequest;
+import com.map.MetaHive.model.Player;
+import com.map.MetaHive.model.Room;
+import com.map.MetaHive.service.GameSessionService;
+import com.map.MetaHive.service.SpawnPointService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

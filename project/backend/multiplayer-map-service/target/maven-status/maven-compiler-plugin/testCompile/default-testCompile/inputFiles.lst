@@ -1,9 +1,0 @@
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/MetaHiveApplicationTests.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/config/WebSocketConfigTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/config/cors/CorsConfigTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/controller/PlayerControllerTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/dto/DTOTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/model/PlayerTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/model/RoomTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/service/GameSessionServiceTest.java
-/Users/md.saidurrahmansagor/Developments/code-warriors-/project/backend/multiplayer-map-service/src/test/java/com/map/metahive/service/SpawnPointServiceTest.java

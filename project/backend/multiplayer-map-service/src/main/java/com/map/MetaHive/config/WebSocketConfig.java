@@ -1,4 +1,4 @@
-package com.map.metahive.config;
+package com.map.MetaHive.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

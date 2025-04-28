@@ -1,4 +1,4 @@
-package com.map.metahive.model;
+package com.map.MetaHive.model;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

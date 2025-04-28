@@ -1,4 +1,4 @@
-package com.map.metahive.dto;
+package com.map.MetaHive.dto;
 
 public class RoomRequest {
     private String roomId;
