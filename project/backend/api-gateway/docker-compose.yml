@@ -1,0 +1,21 @@
+# No version needed
+
+services:
+  app:
+    build: .
+    container_name: api-gateway-app # Unique name, matches target in prometheus.yml
+    ports:
+      - "9000:9000" # Map host port to container port
+    environment:
+      # Point to the SHARED collector using its container name
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=api-gateway
+      # Add any other specific environment variables for the API gateway
+    networks:
+      - monitoring_net # Connect to the shared network
+      - default # Keep default network
+
+networks:
+  monitoring_net:
+    external: true # Specify that this network is created elsewhere

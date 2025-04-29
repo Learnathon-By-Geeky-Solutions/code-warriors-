@@ -1,3 +1,4 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin // Keep if using the BOM constant
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.1'
@@ -8,6 +9,8 @@ plugins {
 ext {
     set('springCloudVersion', "2024.0.0")
     lombokVersion = '1.18.32'
+    testcontainersVersion = '1.19.8'
+    openTelemetryVersion = '2.15.0'
 }
 
 group = 'com.example'
@@ -24,7 +27,14 @@ configurations {
         extendsFrom annotationProcessor
     }
 }
-
+dependencyManagement {
+    imports {
+        mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
+        mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+        // It's good practice to manage Testcontainers via BOM too
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}
 repositories {
     mavenCentral()
 }
@@ -57,6 +67,31 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
     testImplementation 'org.testcontainers:mysql:1.19.7'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+// OpenTelemetry (Versions managed by BOM)
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5' // Check compatibility if OTel version changes
+    implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Check if BOM covers this or if newer exists
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers' // Integrates Boot + Testcontainers
+
+    // Testcontainers (Versions managed by BOM)
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+
+    // ADDED: Kotlin stdlib needed for Testcontainers/OkHttp runtime
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // ADDED: Explicit test runtime launcher
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 }
 
 dependencyManagement {

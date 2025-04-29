@@ -1,7 +1,10 @@
 rootProject.name = 'meta-backend'
 
-include 'api-gateway'
-include 'doc-server'
-include 'office-service'
-include 'project-manager'
-include 'user-service'
+// Ignore non-Gradle folders
+def gradleProjects = ['api-gateway', 'doc-server', 'office-service', 'project-manager', 'user-service']
+
+rootDir.eachDir { dir ->
+    if (gradleProjects.contains(dir.name)) {
+        include dir.name
+    }
+}

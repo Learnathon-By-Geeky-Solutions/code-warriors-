@@ -1,13 +1,18 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 plugins {
     id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
 }
 
 ext {
-    set('springCloudVersion', "2024.0.0") // Or the version compatible with your Spring Boot version
-    set('testcontainersVersion', "1.19.7") // Or newer like 1.19.8
+    // Use versions from root project if defined there, otherwise define here
+    springCloudVersion = findProperty('springCloudVersion') ?: "2024.0.0"
+    testcontainersVersion = findProperty('testcontainersVersion') ?: "1.19.8"
+    openTelemetryVersion = findProperty('openTelemetryVersion') ?: '2.15.0'
+    lombokVersion = findProperty('lombokVersion') ?: '1.18.32'
 }
 
 group = 'com.meta'
@@ -23,56 +28,76 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        // Put Spring Boot BOM first (Convention)
+        mavenBom SpringBootPlugin.BOM_COORDINATES
+        // Then OTel BOM
+        mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+        // Other BOMs
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}
+
 dependencies {
+    // Core dependencies (keep existing)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-    // implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0' // Usually UI includes API
-    implementation 'org.modelmapper:modelmapper:3.1.1' // Consider newer version
-    implementation 'io.github.cdimascio:java-dotenv:5.2.2' // Be careful with this in production/CI
-    implementation 'org.keycloak:keycloak-core:24.0.4' // Consider newer version
+    implementation 'org.modelmapper:modelmapper:3.1.1'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    implementation 'org.keycloak:keycloak-core:24.0.4'
     implementation 'com.auth0:java-jwt:4.4.0'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j' // Ensure version matches springCloudVersion
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}" // Use variable
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}" // Use variable
 
-    runtimeOnly 'com.mysql:mysql-connector-j:8.4.0' // Consider newer version
+    // Database
+    runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
 
+    // Monitoring Dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-actuator' // Keep only one instance
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5'
+
+
+
+
+     implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Fallback if BOM fails
+
+
+    // Testing Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'io.rest-assured:rest-assured:5.4.0'
     testImplementation 'io.rest-assured:json-path:5.4.0'
     testImplementation 'io.rest-assured:xml-path:5.4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // Testcontainers dependencies managed by BOM
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
+    // Add Kotlin dependency for consistency with working example
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8" // <<< ADDED
 
-    // === ADD THIS IF YOU ENCOUNTER THE KOTLIN ERROR ===
-    // testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-    }
-}
-
+// Keep existing test and jacoco configurations
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport // Runs jacoco report after tests
-
-    // Arguments needed for Mockito/ByteBuddy on newer JDKs
+    finalizedBy jacocoTestReport
     jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
     jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-    // Optional: Only needed if you use Mockito inline mocking
     systemProperty "mockito.mock.creation.default", "mock-maker-inline"
 }
 
@@ -81,18 +106,13 @@ jacoco {
 }
 
 jacocoTestReport {
-    dependsOn test // Ensure tests run first
-
+    dependsOn test
     reports {
-        xml.required = true // For Sonar
-        html.required = true // For local viewing
+        xml.required = true
+        html.required = true
         csv.required = false
-
-        // Standard output locations are usually fine, but explicit is okay too
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
         xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
         csv.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.csv')
     }
 }
-
-// --- REMOVED Duplicate tasks.named('test') block ---

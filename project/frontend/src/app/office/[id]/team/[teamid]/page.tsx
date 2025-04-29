@@ -13,9 +13,23 @@ import TeamChatbox from "@/components/teamChatBox";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function TeamPage() {
-  const { theme } = useTheme();
+ const { theme } = useTheme();
   const params = useParams();
-  const teamId = params.teamId as string;
+  
+  // Log the full params object to see its structure
+  console.log("Full params object:", params);
+  
+  // Get the teamId - try multiple approaches
+  let teamId;
+  if (params.teamId) {
+    teamId = params.teamId;
+  } else {
+    // Try to get the first parameter value as a fallback
+    const keys = Object.keys(params);
+    if (keys.length > 0) {
+      teamId = params[keys[1]];
+    }
+  }
   const auth = useAuth();
 
   const [team, setTeam] = useState<Team | null>(null);
@@ -29,6 +43,7 @@ export default function TeamPage() {
     const fetchTeamAndUsers = async () => {
       try {
         const teamData = await teamService.getTeam(teamId);
+        console.log("Fetched team data:", teamData);
         setTeam(teamData);
 
         const userIds = await teamRoleService.getUserIdsByTeam(teamId);

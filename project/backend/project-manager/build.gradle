@@ -5,8 +5,8 @@ plugins {
 	id 'org.springframework.boot' // Version managed by Boot plugin usually
 	id 'io.spring.dependency-management'
 	id 'jacoco'
-	// REMOVED: id 'org.sonarqube' version '4.4.1.3373' // Configured in root
-	// REMOVED (if not using native): id 'org.graalvm.buildtools.native' version '0.10.6'
+	id 'org.sonarqube' version '4.4.1.3373'
+	id 'org.graalvm.buildtools.native' version '0.10.6'
 }
 
 ext {

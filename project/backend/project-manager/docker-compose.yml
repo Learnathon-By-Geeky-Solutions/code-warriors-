@@ -1,43 +1,24 @@
-version: '3.8'
+# No version needed
 
 services:
   app:
     build: .
-    container_name: my-java-app
+    container_name: project-manager-app # Unique name, matches target in prometheus.yml
     ports:
-      - "9087:9087"
+      - "9087:9087" # Map host port to container port
     environment:
+      # Point to the SHARED collector using its container name
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_SERVICE_NAME=project-manager
+      # Database connection (assuming DB is accessible on host machine's port 3306)
       - DB_URL=jdbc:mysql://host.docker.internal:3306/metadocs
       - DB_USERNAME=root
       - DB_PASSWORD=1234
-    depends_on:
-      - otel-collector
+    networks:
+      - monitoring_net # Connect to the shared network
+      - default # Keep default network for potential other service links if needed
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.123.0
-    container_name: otel-collector
-    volumes:
-      - ./collector-spring-native-config.yaml:/collector-spring-native-config.yaml
-    command: [ "--config=/collector-spring-native-config.yaml" ]
-    ports:
-      - "4318:4318"
-    depends_on:
-      - zipkin
-
-  zipkin:
-    image: openzipkin/zipkin:latest
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-
-  prometheus:
-   image: prom/prometheus
-   volumes:
-     - ./prometheus.yml:/etc/prometheus/prometheus.yml
-   depends_on:
-     - app
-   ports:
-     - '9090:9090'
+networks:
+  monitoring_net:
+    external: true # Specify that this network is created elsewhere

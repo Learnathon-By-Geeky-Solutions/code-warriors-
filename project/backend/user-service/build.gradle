@@ -6,6 +6,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
     id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.graalvm.buildtools.native' version '0.10.6' apply false
 }
 
 group = 'com.example' // 🔥 Change as per your project
@@ -29,6 +30,17 @@ repositories {
 
 ext {
     lombokVersion = '1.18.32'
+    openTelemetryVersion = findProperty('openTelemetryVersion') ?: '2.15.0'
+    testcontainersVersion = findProperty('testcontainersVersion') ?: '1.19.8'
+}
+dependencyManagement {
+    imports {
+        mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
+        mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+        // Add Spring Cloud BOM if needed by this service specifically
+        // mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 dependencies {
@@ -41,17 +53,23 @@ dependencies {
 
     // Keycloak Admin Client
     implementation 'org.keycloak:keycloak-admin-client:24.0.1'
-
+    implementation 'io.opentelemetry.contrib:opentelemetry-samplers'
+    implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha'
     // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     // OpenAPI / Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // *** CHANGE THIS LINE *** - Make H2 available at runtime for the 'test' profile
-    runtimeOnly 'com.h2database:h2' // Changed from testImplementation
-
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5'
     // Testing dependencies (keep as testImplementation)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     // Optional: if you want testcontainers later, add here

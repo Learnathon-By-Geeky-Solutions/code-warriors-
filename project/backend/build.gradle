@@ -9,6 +9,14 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
+// Define versions centrally
+ext {
+    openTelemetryVersion = '2.15.0' // Or latest compatible, check OTel docs for Boot 3.4
+    testcontainersVersion = '1.19.8'
+    springCloudVersion = '2024.0.0' // Check compatibility with Boot 3.4.1
+    // Add other shared versions if needed
+}
+
 allprojects {
     group = 'com.meta'
     version = '0.0.1-SNAPSHOT'
@@ -30,122 +38,156 @@ subprojects {
         }
     }
 
-    jacoco {
-        toolVersion = "0.8.11" // Consistent JaCoCo version
-    }
-
-    // Configuration for INDIVIDUAL subproject reports (generates test.exec)
-    jacocoTestReport {
-        dependsOn tasks.named('test') // Ensure tests run first for this subproject
-        reports {
-            xml.required = true // Needed for generating execution data
-            html.required = true // Optional for individual reports
-            csv.required = false
-
-            // Explicitly set output locations with the new API
-            html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
-            xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
-            csv.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.csv')
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
         }
-        // You can keep class exclusion logic here if it's specific to the subproject
-    }
-
-    test {
-        useJUnitPlatform()
-        finalizedBy jacocoTestReport // CRITICAL: Ensure test.exec is generated after tests
-
-        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
-        jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-        systemProperty "mockito.mock.creation.default", "mock-maker-inline"
-    }
-
-    // Common dependencies for all subprojects
-    dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        implementation 'org.flywaydb:flyway-core'
-        implementation 'org.flywaydb:flyway-mysql'
-        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-        // implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0' // Usually UI includes API
-        implementation 'org.modelmapper:modelmapper:3.1.1' // Updated version
-        implementation 'io.github.cdimascio:java-dotenv:5.2.2'
-        implementation 'org.keycloak:keycloak-core:24.0.4' // Updated version (check compatibility)
-        implementation 'com.auth0:java-jwt:4.4.0'
-
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        runtimeOnly 'com.mysql:mysql-connector-j:8.4.0' // Updated version
-
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-        testImplementation 'io.rest-assured:rest-assured:5.4.0'
-        testImplementation 'io.rest-assured:json-path:5.4.0'
-        testImplementation 'io.rest-assured:xml-path:5.4.0'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-        // Testcontainers (managed by BOM)
-        testImplementation 'org.testcontainers:testcontainers'
-        testImplementation 'org.testcontainers:junit-jupiter'
-        testImplementation 'org.testcontainers:mysql'
     }
 
     dependencyManagement {
         imports {
-            // Using Spring Boot's BOM usually covers Spring Cloud, check if explicit Cloud BOM is needed
-            // mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0" // Check Boot 3.4 compatibility
-            mavenBom "org.testcontainers:testcontainers-bom:1.19.8" // Updated version
+            // Spring Boot BOM manages many dependencies, including common Spring libs
+            mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+
+            // Spring Cloud - Add IF multiple subprojects use it, otherwise keep in specific subproject
+            // Consider Boot 3.4 compatibility for this Cloud version
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+
+            // OpenTelemetry BOM - Manages OTel dependency versions
+            mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+
+            // Testcontainers BOM
+            mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
         }
     }
-}
+
+    dependencies {
+        // === Common Spring Boot Starters ===
+        implementation 'org.springframework.boot:spring-boot-starter-web' // Common for REST APIs
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // If using JPA
+        implementation 'org.springframework.boot:spring-boot-starter-actuator' // Essential for monitoring/metrics
+
+        // === Database & Migrations ===
+        implementation 'org.flywaydb:flyway-core'
+        implementation 'org.flywaydb:flyway-mysql'
+        runtimeOnly 'com.mysql:mysql-connector-j:8.4.0' // Or latest compatible version
+
+        // === API Documentation ===
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0' // Check latest version
+
+        // === Utilities ===
+        implementation 'org.modelmapper:modelmapper:3.1.1'
+        implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        // === Security (If common across services) ===
+        implementation 'org.keycloak:keycloak-core:24.0.4' // Check compatibility
+        implementation 'com.auth0:java-jwt:4.4.0'
+        // Consider adding 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' here
+        // if *most* services act as resource servers. Otherwise, keep it specific.
+
+        // === OpenTelemetry Core & Auto-instrumentation ===
+        // (Versions managed by opentelemetry-instrumentation-bom)
+        implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+        implementation 'io.opentelemetry:opentelemetry-api' // Often transitive, but safe to include
+        implementation 'io.opentelemetry:opentelemetry-sdk' // Often transitive, but safe to include
+        implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+
+        // === OpenTelemetry Exporters ===
+        implementation 'io.opentelemetry:opentelemetry-exporter-zipkin' // For sending traces to Zipkin
+        implementation 'io.opentelemetry:opentelemetry-exporter-otlp' // Often needed for OTel Collector
+        implementation 'io.opentelemetry:opentelemetry-exporter-logging' // For debugging
+
+        // === OpenTelemetry Extras ===
+        // implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Check BOM or newer version
+
+        // === Micrometer & Prometheus ===
+        implementation 'io.micrometer:micrometer-registry-prometheus' // Enables /actuator/prometheus endpoint
+
+        // === Micrometer to OpenTelemetry Bridge ===
+        // Needed if you want Micrometer metrics (e.g., from Spring Boot) to be exported via OTel pipeline
+        runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5' // Check OTel BOM ensures compatibility
+
+
+        // === Common Test Dependencies ===
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.boot:spring-boot-testcontainers' // Requires testcontainers BOM
+        testImplementation 'io.rest-assured:rest-assured:5.4.0' // Or latest
+        testImplementation 'io.rest-assured:json-path:5.4.0'
+        testImplementation 'io.rest-assured:xml-path:5.4.0'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        // Testcontainers Core & Modules (Versions managed by testcontainers-bom)
+        testImplementation 'org.testcontainers:testcontainers'
+        testImplementation 'org.testcontainers:junit-jupiter'
+        testImplementation 'org.testcontainers:mysql'
+        // Add other Testcontainer modules as needed (e.g., kafka, rabbitmq)
+    }
+
+    // === JaCoCo Configuration for Subprojects ===
+    jacoco {
+        toolVersion = "0.8.11" // Consistent JaCoCo version
+    }
+
+    jacocoTestReport {
+        dependsOn tasks.named('test')
+        reports {
+            xml.required = true
+            html.required = true
+            csv.required = false
+            html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
+            xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
+            csv.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.csv')
+        }
+        // Optional: Add class/package exclusions specific to subprojects if needed
+        // afterEvaluate { ... } // Use afterEvaluate for complex exclusions based on sourceSets
+    }
+
+    // === Test Task Configuration ===
+    test {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport // Ensure test.exec is generated after tests
+
+        // JVM args for Mockito/newer JDKs
+        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+        jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+        systemProperty "mockito.mock.creation.default", "mock-maker-inline" // If using inline mocks
+    }
+} // End of subprojects block
 
 // === Manual JaCoCo Aggregate Report Configuration ===
+// (Keep this section exactly as you had it, it looks correct)
 def jacocoProjects = subprojects.findAll { project ->
-    // Include only projects that have the jacoco plugin applied
-    project.plugins.hasPlugin('jacoco') && project.sourceSets.findByName('main') // Ensure project has java sources
+    project.plugins.hasPlugin('jacoco') && project.sourceSets.findByName('main')
 }
 
 task jacocoAggregateReport(type: JacocoReport) {
     group = 'verification'
     description = 'Generates an aggregate JaCoCo report for all covered subprojects (Manual Definition).'
-
-    // Ensure all subproject tests run before aggregation
     dependsOn jacocoProjects.collect { it.tasks.named('test') }
-
-    // Configure inputs by collecting from relevant subprojects
-    // These .setFrom calls happen during the CONFIGURATION phase, which is correct.
     additionalSourceDirs.setFrom files(jacocoProjects.collect { it.sourceSets.main.allSource.srcDirs })
     sourceDirectories.setFrom files(jacocoProjects.collect { it.sourceSets.main.allSource.srcDirs })
     classDirectories.setFrom files(jacocoProjects.collect { it.sourceSets.main.output })
-
-    // Collect execution data files safely during configuration.
     executionData.setFrom files(jacocoProjects.collect {
         file("${it.buildDir}/jacoco/test.exec")
     }).filter { it.exists() }
-
-    // Configure desired report outputs
     reports {
-        xml.required = true // SonarCloud needs this
-        html.required = true // Useful for developers
+        xml.required = true
+        html.required = true
         csv.required = false
-
-        // Explicitly set output locations for the aggregate report
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
-        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.xml') // Match Sonar path
+        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.xml')
         csv.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/jacoco.csv')
     }
 }
 
 // === Task Dependencies ===
-
-// Ensure the aggregate report is generated as part of the main verification step
+// (Keep this section exactly as you had it)
 tasks.named('check').configure {
     dependsOn tasks.named('jacocoAggregateReport')
 }
-
-// Ensure SonarQube analysis runs *after* the aggregate report is generated
 tasks.named('sonarqube').configure {
     dependsOn tasks.named('jacocoAggregateReport')
-    // Ensure tests from all subprojects have run before analysis
     mustRunAfter(subprojects.collect { it.tasks.withType(Test) })
 }
