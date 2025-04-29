@@ -1,4 +1,4 @@
-package com.map.metahive.dto;
+package com.map.MetaHive.dto;
 
 public class CreateRoomRequest extends RoomRequest {
     public CreateRoomRequest() {

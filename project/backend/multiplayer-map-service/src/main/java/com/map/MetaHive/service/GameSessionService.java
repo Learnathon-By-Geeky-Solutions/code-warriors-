@@ -1,7 +1,7 @@
-package com.map.metahive.service;
+package com.map.MetaHive.service;
 
-import com.map.metahive.model.Player;
-import com.map.metahive.model.Room;
+import com.map.MetaHive.model.Player;
+import com.map.MetaHive.model.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

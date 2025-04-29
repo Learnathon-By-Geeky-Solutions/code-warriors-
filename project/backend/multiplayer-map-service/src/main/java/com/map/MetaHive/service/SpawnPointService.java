@@ -1,4 +1,4 @@
-package com.map.metahive.service;
+package com.map.MetaHive.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

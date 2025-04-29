@@ -1,4 +1,4 @@
-package com.map.metahive.config.cors;
+package com.map.MetaHive.config.cors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

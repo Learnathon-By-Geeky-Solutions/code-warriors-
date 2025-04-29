@@ -1,9 +1,0 @@
-com/map/metahive/config/cors/CorsConfigTest.class
-com/map/metahive/MetaHiveApplicationTests.class
-com/map/metahive/config/WebSocketConfigTest.class
-com/map/metahive/service/SpawnPointServiceTest.class
-com/map/metahive/model/PlayerTest.class
-com/map/metahive/service/GameSessionServiceTest.class
-com/map/metahive/dto/DTOTest.class
-com/map/metahive/controller/PlayerControllerTest.class
-com/map/metahive/model/RoomTest.class
