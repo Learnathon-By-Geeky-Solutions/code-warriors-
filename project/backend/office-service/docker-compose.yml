@@ -1,0 +1,30 @@
+# In office-service/docker-compose.yml
+services:
+  app:
+    build:
+      context: .
+    container_name: office-service-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker # Keep if using profiles
+
+      # OTel Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=office-service
+
+      # === Database Configuration ===
+      # Use names matching application.properties placeholders
+      # Connects to 'metadocs' DB on the host via Docker Desktop's special DNS name
+      - DB_URL=jdbc:mysql://host.docker.internal:3306/metadocs # <<< USE THIS VALUE
+      - DB_USERNAME=root                                     # <<< PROVIDE USERNAME
+      - DB_PASSWORD=1234                                     # <<< PROVIDE PASSWORD (Use secrets!)
+
+    networks:
+      - monitoring_net
+      - default
+
+networks:
+  monitoring_net:
+    external: true

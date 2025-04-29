@@ -1,0 +1,28 @@
+# In user-service/docker-compose.yml
+services:
+  app:
+    build: .
+    container_name: user-service-app
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker # Keep this if using profiles
+
+      # OTel Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=user-service
+
+      # === CORRECTED Database connection variables ===
+      # Use standard Spring Boot environment variable names
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/metadocs
+      - SPRING_DATASOURCE_USERNAME=root # <<< CHANGE
+      - SPRING_DATASOURCE_PASSWORD=1234 # <<< CHANGE (Use secrets in real apps!)
+
+    networks:
+      - monitoring_net
+      - default
+
+networks:
+  monitoring_net:
+    external: true

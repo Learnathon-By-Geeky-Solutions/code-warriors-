@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: otel-collector
+    volumes:
+      - ./collector-config.yaml:/etc/otel-collector/config.yaml
+    command: [ "--config=/etc/otel-collector/config.yaml" ]
+    ports:
+      - "4318:4318"
+
+    networks:
+      - monitoring_net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:13133" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - monitoring_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9411/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - '9090:9090'
+    networks:
+      - monitoring_net
+#  api-gateway-app: # Service name (can be different from container_name)
+#    build:
+#      context: ./api-gateway # <--- Adjust build context path relative to ROOT
+#    container_name: api-gateway-app
+#    ports:
+#      - "9000:9000"
+#    environment:
+#      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+#      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+#      - OTEL_SERVICE_NAME=api-gateway
+#    networks:
+#      - monitoring_net # Attach to the network defined below
+
+networks:
+  monitoring_net:
+    driver: bridge
+    name: monitoring_net  # Explicit named network
+    attachable: true

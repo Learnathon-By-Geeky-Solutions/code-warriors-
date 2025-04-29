@@ -1,5 +1,6 @@
 package com.meta.gateway.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -28,8 +29,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         try {
             return httpSecurity.authorizeHttpRequests(authorize -> authorize
+                            .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                             .requestMatchers(freeResourceUrls)
                             .permitAll()
+                            .requestMatchers(EndpointRequest.to("prometheus", "health")).permitAll()
+                            .requestMatchers("/actuator/prometheus", "/actuator/health").permitAll()
                             .anyRequest().authenticated())
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
@@ -37,7 +41,6 @@ public class SecurityConfig {
         } catch (IllegalStateException | IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            // Handle other types of exceptions
             throw new IllegalStateException("Security configuration error: " + e.getMessage(), e);
         }
     }
