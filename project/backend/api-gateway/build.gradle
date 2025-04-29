@@ -1,27 +1,106 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin // Keep if using the BOM constant
+
 plugins {
     id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+}
+
+group = 'com.meta' // Use consistent group ID
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+ext {
+
+    openTelemetryVersion = '2.15.0'
+    testcontainersVersion = '1.19.8'
+}
+// === ADDED REPOSITORIES BLOCK ===
+repositories {
+    mavenCentral()
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 ext {
-    set('springCloudVersion', "2024.0.0")
-}
+    set('springCloudVersion', "2024.0.0") // Ensure compatibility
 
+}
+dependencyManagement {
+    imports {
+        mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
+        mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+        // It's good practice to manage Testcontainers via BOM too
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-mvc'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok' // Specify version if not managed
+    annotationProcessor 'org.projectlombok:lombok' // Specify version if not managed
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0' // UI includes API
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j' // Use starter
+
+    // OpenTelemetry (Versions managed by BOM)
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5' // Check compatibility if OTel version changes
+    implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Check if BOM covers this or if newer exists
+
+    // Metrics for Prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8" // For Testcontainers/OkHttp
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        // Recommended: Add OTel BOM
+        // mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:..."
     }
 }
+
+// Jacoco test coverage config
+jacoco {
+    toolVersion = "0.8.11" // Ensure consistency
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // always generate report after tests
+
+    // === ADDED JVM ARGS/PROPS === (Needed for JDK >= 17 + Mockito inline)
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+    jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+    systemProperty "mockito.mock.creation.default", "mock-maker-inline" // If using Mockito inline mocking
+}
+
+jacocoTestReport {
+    // dependsOn test // Redundant because of finalizedBy above
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml')) // Standard location for individual html report
+    }
+}
+
+// --- REMOVED duplicate tasks.named('test') block ---

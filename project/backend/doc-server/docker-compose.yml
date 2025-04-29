@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    # Consider a more specific container name like 'doc-server-app'
+    container_name: doc-server-app
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker # Keep if using profiles
+
+      # OTel Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=doc-server # Correct service name
+
+      # === CORRECTED Database connection variables ===
+      # --- These names MUST match the placeholders in application.properties ---
+      - DB_URL=jdbc:mysql://host.docker.internal:3306/metadocs # <<< USE DB_URL (Adjust DB name if needed, e.g., metadocs_doc)
+      - DB_USERNAME=root                                         # <<< USE DB_USERNAME
+      - DB_PASSWORD=1234                                         # <<< USE DB_PASSWORD (Use secrets in real apps!)
+
+    networks:
+      - monitoring_net
+      - default
+
+networks:
+  monitoring_net:
+    external: true

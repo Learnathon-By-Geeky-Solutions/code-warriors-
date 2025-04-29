@@ -1,20 +1,26 @@
 name: SonarCloud Analysis
+
 on:
   push:
     branches:
-      - main
+      - main # Analyze commits pushed to main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened] # Analyze pull requests
+
+permissions:
+  contents: read
+  pull-requests: read # Allow reading PR details
 
 jobs:
   build-and-analyze:
+    name: Build, Test, and Analyze
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Crucial for SonarCloud branch/PR analysis
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -22,65 +28,50 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Make all gradlew files executable
-        run: |
-          find project/backend -name "gradlew" -type f -exec chmod +x {} \;
+      - name: Make gradlew executable
+        run: chmod +x project/backend/gradlew
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('project/backend/**/build.gradle', 'project/backend/**/settings.gradle', 'project/backend/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: Run Tests and Generate JaCoCo Reports
-        run: |
-          echo "Running tests and generating JaCoCo reports for all microservices..."
-          for dir in project/backend/*/; do
-            if [ -f "$dir/build.gradle" ] && [ -f "$dir/gradlew" ]; then
-              echo "Testing and generating JaCoCo for $(basename "$dir")"
-              (cd "$dir" && ./gradlew test jacocoTestReport --info --continue) || echo "WARNING: $(basename "$dir") failed tests or report"
-            fi
-          done
-
-      - name: Prepare SonarCloud parameters
-        id: sonar-params
-        run: |
-          SOURCES=""
-          TESTS=""
-          BINARIES=""
-          TEST_BINARIES=""
-          JACOCO_REPORTS=""
-
-          for dir in project/backend/*/; do
-            if [ -d "$dir/src/main/java" ]; then SOURCES="$SOURCES,$dir/src/main/java"; fi
-            if [ -d "$dir/src/test/java" ]; then TESTS="$TESTS,$dir/src/test/java"; fi
-            if [ -d "$dir/build/classes/java/main" ]; then BINARIES="$BINARIES,$dir/build/classes/java/main"; fi
-            if [ -d "$dir/build/classes/java/test" ]; then TEST_BINARIES="$TEST_BINARIES,$dir/build/classes/java/test"; fi
-            if [ -f "$dir/build/reports/jacoco/test/jacocoTestReport.xml" ]; then JACOCO_REPORTS="$JACOCO_REPORTS,$dir/build/reports/jacoco/test/jacocoTestReport.xml"; fi
-          done
-
-          # Remove leading commas
-          echo "sources=${SOURCES#,}" >> $GITHUB_OUTPUT
-          echo "tests=${TESTS#,}" >> $GITHUB_OUTPUT
-          echo "binaries=${BINARIES#,}" >> $GITHUB_OUTPUT
-          echo "test_binaries=${TEST_BINARIES#,}" >> $GITHUB_OUTPUT
-          echo "jacoco_reports=${JACOCO_REPORTS#,}" >> $GITHUB_OUTPUT
+      - name: Build, Run Tests and Generate JaCoCo Reports
+        working-directory: ./project/backend 
+        run: ./gradlew build jacocoAggregateReport --continue --info
+      - name: Upload Test Reports
+        # Always upload reports, especially on failure, to see what went wrong
+        if: always() # Run this even if previous steps fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.run_id }} # Unique name per run
+          path: |
+            project/backend/*/build/reports/tests/test/ # Upload all test reports
+            project/backend/build/reports/problems/     # Upload problems report
+          retention-days: 7 # Keep reports for 7 days
 
       - name: SonarCloud Scan
+        # Run even if the build step had test failures
         if: success() || failure()
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
-          projectBaseDir: .
+          # Set the base directory for the Sonar analysis
+          projectBaseDir: project/backend
+          # Define all properties in command line args similar to Maven example
           args: >
             -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_code-warriors-
             -Dsonar.organization=learnathon-by-geeky-solutions
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=${{ steps.sonar-params.outputs.sources }}
-            -Dsonar.tests=${{ steps.sonar-params.outputs.tests }}
-            -Dsonar.java.binaries=${{ steps.sonar-params.outputs.binaries }}
-            -Dsonar.java.test.binaries=${{ steps.sonar-params.outputs.test_binaries }}
-            -Dsonar.coverage.jacoco.xmlReportPaths=${{ steps.sonar-params.outputs.jacoco_reports }}
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.java.source=21
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/aggregate/jacoco.xml
+            -Dsonar.coverage.exclusions=**/config/**,**/exception/**,**/model/**,**/dto/**,**/*Application*
+           
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

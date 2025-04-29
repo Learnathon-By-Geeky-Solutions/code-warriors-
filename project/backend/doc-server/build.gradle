@@ -1,17 +1,42 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin // Keep if using the BOM constant
 plugins {
     id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 ext {
     set('springCloudVersion', "2024.0.0")
+    lombokVersion = '1.18.32'
+    testcontainersVersion = '1.19.8'
+    openTelemetryVersion = '2.15.0'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+}
+dependencyManagement {
+    imports {
+        mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
+        mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
+        // It's good practice to manage Testcontainers via BOM too
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}
+repositories {
+    mavenCentral()
 }
 
 dependencies {
@@ -23,27 +48,50 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    testImplementation 'io.rest-assured:json-path:5.4.0'
-    testImplementation 'io.rest-assured:xml-path:5.4.0'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testImplementation 'com.h2database:h2'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
-    // Testcontainers
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'io.rest-assured:json-path:5.4.0'
+    testImplementation 'io.rest-assured:xml-path:5.4.0'
     testImplementation 'org.testcontainers:testcontainers:1.19.7'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
     testImplementation 'org.testcontainers:mysql:1.19.7'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+// OpenTelemetry (Versions managed by BOM)
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv'
+    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5' // Check compatibility if OTel version changes
+    implementation 'io.opentelemetry.contrib:opentelemetry-samplers:1.46.0-alpha' // Check if BOM covers this or if newer exists
 
-    // Spring Boot Testcontainers integration
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers' // Integrates Boot + Testcontainers
+
+    // Testcontainers (Versions managed by BOM)
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+
+    // ADDED: Kotlin stdlib needed for Testcontainers/OkHttp runtime
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // ADDED: Explicit test runtime launcher
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 }
 
 dependencyManagement {
@@ -52,8 +100,28 @@ dependencyManagement {
     }
 }
 
-task printRuntimeClasspath {
-    doLast {
-        println sourceSets.main.runtimeClasspath.asPath
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = false
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, excludes: [
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/model/**',
+                    '**/dto/**',
+                    '**/Application*'
+            ])
+        }))
     }
 }
+
+

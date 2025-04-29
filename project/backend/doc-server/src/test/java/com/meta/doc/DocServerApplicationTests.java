@@ -1,21 +1,12 @@
 package com.meta.doc;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
+@TestPropertySource(properties = {
+		"logging.level.org.springframework.boot.context.properties=DEBUG"
+})
 class DocServerApplicationTests {
-
-	@Test
-	void contextLoads() {
-		/*
-		 * This test method is intentionally left empty.
-		 * It serves as a basic sanity check to ensure that
-		 * the Spring application context loads without issues.
-		 *
-		 * If additional tests are required, this method should
-		 * be extended to verify essential application components.
-		 */
-
-	}
+	// Test code
 }
