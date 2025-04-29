@@ -50,7 +50,7 @@ class WebSocketService {
     this.connectionPromise = new Promise((resolve, reject) => {
       try {
         this.client = new Client({
-          webSocketFactory: () => new SockJS("http://localhost:9502/ws"),
+          webSocketFactory: () => new SockJS("https://metahive-multiplayer-map-service-dufhajhkaebtfmbp.southindia-01.azurewebsites.net/ws"),
           debug: (str) => console.log("STOMP: " + str),
           reconnectDelay: this.retryDelay,
           heartbeatIncoming: 4000,
