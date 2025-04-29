@@ -1,0 +1,232 @@
+/* app/office/[id]/team/[teamId]/TeamPage.module.css */
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+
+.content {
+  /* display: flex; */
+  margin-top: 1rem;
+}
+
+.sidebar {
+  width: 300px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease;
+  position: fixed;
+  top: 70px; /* Adjust this value to match your header height */
+  height: calc(
+    100vh - 70px
+  ); /* Adjust this value to match your header height */
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.leftSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.rightSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.meetSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sidebarTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.sidebarToggle {
+  position: fixed;
+  padding: 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.leftToggle {
+  top: 120px;
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+  transition: transform 0.5s ease;
+}
+
+.leftToggleTransform {
+  top: 120px;
+  left: 0.1rem;
+  transform: translateX(18rem);
+  transition: transform 0.5s ease;
+}
+
+.rightToggle {
+  top: 220px;
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+  transition: transform 0.5s ease;
+}
+
+.rightToggleTransform {
+  top: 220px;
+  left: 0.1rem;
+  transform: translateX(18rem);
+  transition: transform 0.5s ease;
+}
+
+.meetToggle {
+  top: 320px;
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+  transition: transform 0.5s ease;
+}
+
+.meetToggleTransform {
+  top: 320px;
+  left: 0.1rem;
+  transform: translateX(18rem);
+  transition: transform 0.5s ease;
+}
+
+.sidebarToggle:hover {
+  opacity: 0.8;
+}
+
+.placeholderContent {
+  padding: 1rem 0;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.mainContent {
+  flex-grow: 1;
+  margin-left: 300px;
+  margin-right: 300px;
+  padding: 0 1rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.meetingList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.meetingCard {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.meetingCard:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.meetingTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.meetingDate {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .mainContent {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+/* Add to your TeamPage.module.css */
+
+/* Chat Toggle Button */
+.chatToggleButton {
+  position: fixed;
+  bottom: 45px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background-color: rgb(76, 175, 80); /* Semi-transparent green */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  z-index: 1002; /* Above chatbox */
+}
+
+.chatToggleButton:hover {
+  background-color: rgb(76, 175, 80); /* Opaque green on hover */
+  transform: scale(1.1);
+}
+
+/* Chatbox Container */
+.chatBoxContainer {
+  position: fixed; /* Ensure it's fixed relative to the viewport */
+  bottom: 107px; /* Position above the toggle button */
+  right: 20px;
+  z-index: 1001; /* Below toggle button but above other elements */
+}

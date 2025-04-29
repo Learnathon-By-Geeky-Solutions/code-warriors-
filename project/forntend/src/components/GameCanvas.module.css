@@ -1,0 +1,205 @@
+/* src/components/GameCanvas.module.css */
+
+/* Container for the game canvas and overlay elements */
+.gameCanvasContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #1a1a1a; /* Dark background to complement transparency */
+}
+
+/* Game Canvas */
+.gameCanvas {
+  width: 100% !important; /* Force full width */
+  height: 100% !important; /* Force full height */
+  display: block;
+  object-fit: cover; /* Ensure image retains aspect ratio without distortion */
+}
+
+/* Video Calls Container - Top Right */
+.videoCallsContainer {
+  position: fixed;
+  top: 75px;
+  right: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1003; /* Above other elements */
+}
+
+/* Local Video */
+.localVideo {
+  width: 200px;
+  height: 150px;
+  background: black;
+  border: 2px solid white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+}
+
+/* Remote Videos */
+.remoteVideos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh; /* Adjust as needed */
+  overflow-y: auto;
+}
+
+/* Each Remote Video */
+.remoteVideo {
+  width: 200px;
+  height: 150px;
+  background: black;
+  border: 2px solid white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+}
+
+/* Screen Share Video - Bottom Left */
+.screenVideo {
+  width: 300px;
+  height: 200px;
+  background: black;
+  border: 2px solid white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1003; /* Above other elements */
+}
+
+/* Chat Toggle Button */
+.chatToggleButton {
+  position: fixed;
+  bottom: 45px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background-color: rgb(76, 175, 80); /* Semi-transparent green */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  z-index: 1002; /* Above chatbox */
+}
+
+.chatToggleButton:hover {
+  background-color: rgb(76, 175, 80); /* Opaque green on hover */
+  transform: scale(1.1);
+}
+
+/* Chatbox Container */
+.chatBoxContainer {
+  position: fixed; /* Ensure it's fixed relative to the viewport */
+  bottom: 40px; /* Position above the toggle button */
+  right: 20px;
+  z-index: 1001; /* Below toggle button but above other elements */
+}
+
+/* Media Controls Container */
+.mediaControlsContainer {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 1002; /* Above other elements */
+}
+
+/* Media Control Buttons */
+.mediaButton {
+  width: 60px;
+  height: 60px;
+  background-color: rgb(76, 175, 80); /* Semi-transparent green */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.mediaButton:hover {
+  background-color: rgb(76, 175, 80); /* Opaque green on hover */
+  transform: scale(1.1);
+}
+
+
+
+/* --------------- RESPONSIVE --------------- */
+
+@media (max-width: 1200px) {
+  .videoCallsContainer {
+    right: 10px;
+    top: 10px;
+  }
+
+  .localVideo,
+  .remoteVideo {
+    width: 150px;
+    height: 112.5px; /* Maintain aspect ratio */
+  }
+
+  .screenVideo {
+    width: 250px;
+    height: 166.67px;
+  }
+
+  .chatBoxContainer {
+    width: 300px;
+  }
+
+  .chatToggleButton,
+  .mediaButton {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .videoCallsContainer {
+    top: 10px;
+    right: 10px;
+  }
+
+  .localVideo,
+  .remoteVideo {
+    width: 120px;
+    height: 90px;
+  }
+
+  .screenVideo {
+    width: 200px;
+    height: 133.33px;
+  }
+
+  .chatBoxContainer {
+    width: 80%;
+    left: 10%;
+    bottom: 90px; /* Ensure it's still above the toggle button */
+  }
+
+  .chatToggleButton,
+  .mediaButton {
+    width: 50px;
+    height: 50px;
+  }
+
+  .dropdown {
+    width: 100%; /* Ensure dropdowns use full width on smaller screens */
+  }
+}

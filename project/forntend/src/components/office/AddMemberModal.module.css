@@ -1,0 +1,107 @@
+/* src/components/AddMemberModal.module.css */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for better focus */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Above other elements */
+}
+
+.modalContent {
+  background-color: #f9f9f9; /* Light background */
+  padding: 2rem;
+  border-radius: 0.75rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  color: #333; /* Dark text for better readability */
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  color: #0070f3; /* Accent color for headings */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.input,
+.select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #fff; /* White background for inputs */
+  color: #333; /* Dark text for inputs */
+}
+
+.input::placeholder {
+  color: #999; /* Placeholder text color */
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submitButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  background-color: #0070f3;
+  color: #fff;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: #005bb5;
+  transform: translateY(-2px);
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  background-color: #e0e0e0;
+  color: #333;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #cfcfcf;
+  transform: translateY(-2px);
+}
+
+.error {
+  color: #d8000c;
+  background-color: #ffbaba;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.success {
+  color: #4f8a10;
+  background-color: #dff2bf;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}

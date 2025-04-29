@@ -1,0 +1,13 @@
+com\map\MetaHive\service\SpawnPointService$1.class
+com\map\MetaHive\dto\CreateRoomRequest.class
+com\map\MetaHive\model\Player.class
+com\map\MetaHive\dto\JoinRoomRequest.class
+com\map\MetaHive\service\GameSessionService.class
+com\map\MetaHive\service\SpawnPointService.class
+com\map\MetaHive\config\cors\CorsConfig.class
+com\map\MetaHive\config\WebSocketConfig.class
+com\map\MetaHive\model\Room.class
+com\map\MetaHive\dto\RoomRequest.class
+com\map\MetaHive\dto\LeaveRoomRequest.class
+com\map\MetaHive\controller\PlayerController.class
+com\map\MetaHive\MetaHiveApplication.class

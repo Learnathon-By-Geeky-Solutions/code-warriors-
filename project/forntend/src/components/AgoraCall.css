@@ -1,0 +1,113 @@
+.agora-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #1a202c;
+  color: white;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.video-section {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 20px;
+}
+
+.video-box {
+  flex: 1;
+  background-color: #2d3748;
+  border: 2px solid #4a5568;
+  border-radius: 10px;
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+
+#local-video {
+  background-color: #2b6cb0;
+}
+
+#remote-video {
+  background-color: #68d391;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-button {
+  padding: 10px 20px;
+  background-color: #4299e1;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.control-button:hover {
+  background-color: #2b6cb0;
+}
+
+.control-button:active {
+  background-color: #2c5282;
+}
+
+.call-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.call-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.call-modal-button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.call-modal-button.accept {
+  background-color: #48bb78;
+  color: white;
+}
+
+.call-modal-button.reject {
+  background-color: #f56565;
+  color: white;
+}
+
+.call-modal-button:hover {
+  opacity: 0.8;
+}

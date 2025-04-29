@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: my-java-app
+    ports:
+      - "9087:9087"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=project-manager
+      - DB_URL=jdbc:mysql://host.docker.internal:3306/metadocs
+      - DB_USERNAME=root
+      - DB_PASSWORD=1234
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: otel-collector
+    volumes:
+      - ./collector-spring-native-config.yaml:/collector-spring-native-config.yaml
+    command: [ "--config=/collector-spring-native-config.yaml" ]
+    ports:
+      - "4318:4318"
+    depends_on:
+      - zipkin
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
+  prometheus:
+   image: prom/prometheus
+   volumes:
+     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+   depends_on:
+     - app
+   ports:
+     - '9090:9090'

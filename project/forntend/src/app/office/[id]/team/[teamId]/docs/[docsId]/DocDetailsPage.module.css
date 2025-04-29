@@ -1,0 +1,276 @@
+
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  margin-top: 1rem;
+}
+
+/* Sidebars */
+.sidebar {
+  width: 300px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  position: fixed;
+  top: 70px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.leftSidebar {
+  left: 0;
+  transform: translateX(-95%);
+}
+
+.rightSidebar {
+  right: 0;
+  transform: translateX(95%);
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+/* Editor styles */
+.editor {
+  
+  width: 100%;
+  min-height: 500px; /* Taller editor */
+  padding: 2rem; /* More padding */
+  border-radius: 0.5rem; /* Rounded corners */
+}
+
+/* Title Input */
+.titleInput {
+  width: 100%;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-color);
+}
+
+/* Sidebar toggle buttons */
+.sidebarToggle {
+  position: fixed;
+  top: 120px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.leftToggle {
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+}
+
+.leftToggleTransform {
+  left: 0.1rem;
+  transform: translateX(18rem);
+}
+
+.rightToggle {
+  right: 0.1rem;
+  transform: translateX(-0.1rem);
+}
+
+.rightToggleTransform {
+  right: 0.1rem;
+  transform: translateX(-18rem);
+}
+
+.sidebarToggle:hover {
+  opacity: 0.8;
+}
+
+
+
+.mainContent {
+  flex-grow: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.docForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+
+
+.docForm label {
+  font-weight: bold;
+}
+
+/* Update Button */
+.updateButton {
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.updateButton:hover {
+  background-color: #45a049;
+}
+
+/* Add Child Button */
+.addChildButton {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* Dialog Content */
+.dialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.childDocContent {
+  min-height: 200px;
+}
+
+.createDocButton {
+  width: 100%;
+}
+
+/* Error styling */
+.error {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Docs List */
+.docsList {
+  margin-top: 1rem;
+}
+
+.docList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+
+
+/* TipTap editor specific styles */
+.ProseMirror {
+  min-height: 500px;
+  padding: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+.ProseMirror p {
+  margin: 1rem 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 2rem;
+}
+
+.ProseMirror ul li::marker,
+.ProseMirror ol li::marker {
+  color: inherit;
+}
+
+.chatbotDialog {
+  width: 80%;
+  max-width: 600px;
+  background-color: #f4f6f9;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Add to DocDetailsPage.module.css */
+.floatingChat {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  z-index: 1000;
+  transform: scale(0.95); /* Initially scaled down */
+  opacity: 0; /* Initially hidden */
+  pointer-events: none; /* Initially prevents interaction */
+  transition: all 0.3s ease-in-out;
+  transform-origin: bottom right;
+}
+
+.floatingChat.open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.floatingChat.closed {
+  transform: scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .mainContent {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+
