@@ -2,11 +2,11 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin // Keep if using 
 
 plugins {
 	id 'java'
-	id 'org.springframework.boot' // Version managed by Boot plugin usually
-	id 'io.spring.dependency-management'
+	id 'org.springframework.boot' version '3.4.1' // <-- ADD Version
+	id 'io.spring.dependency-management' version '1.1.7' // <-- ADD Version
 	id 'jacoco'
 	id 'org.sonarqube' version '4.4.1.3373'
-	id 'org.graalvm.buildtools.native' version '0.10.6'
+	id 'org.graalvm.buildtools.native' version '0.10.6' // Make sure you need native build tools
 }
 
 ext {
@@ -24,7 +24,10 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
-
+ext {
+	set('springCloudVersion', "2024.0.0") // <-- DEFINE springCloudVersion if not already present
+	// ... other ext versions ...
+}
 
 
 
@@ -40,9 +43,9 @@ repositories {
 
 dependencyManagement {
 	imports {
-		mavenBom SpringBootPlugin.BOM_COORDINATES // Uses version from applied Boot plugin
-		mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}"
-		// It's good practice to manage Testcontainers via BOM too
+		mavenBom SpringBootPlugin.BOM_COORDINATES // Boot BOM
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" // <-- ADD Spring Cloud BOM
+		mavenBom "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:${openTelemetryVersion}" // OTel BOM
 		mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
 	}
 }

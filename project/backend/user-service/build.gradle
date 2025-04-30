@@ -62,7 +62,7 @@ dependencies {
     // OpenAPI / Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-
+    runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
     implementation 'io.opentelemetry:opentelemetry-api'
     implementation 'io.opentelemetry:opentelemetry-sdk'
