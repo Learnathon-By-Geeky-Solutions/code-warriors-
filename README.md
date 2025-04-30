@@ -29,10 +29,10 @@ MetaHive simulates a shared virtual office in which team members control avatars
 
 ---
 ## Team Members
-1. Mohammed Saidur Rahman(Team Leader)  
+1. MD Saidur Rahman(Team Leader)  
 2. Nafis Fuad Shahid  
 3. Md Abdul Muqtadir
-4. Abdullah Al Noman(Mentor)
+4. Md Abdullah Al Noman(Mentor)
 ---
 
 ## Architecture & Technology Stack
