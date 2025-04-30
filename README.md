@@ -233,9 +233,7 @@ cp frontend/.env.example frontend/.env
 ## Deployment
 
 Our application is publicly accessible at:  
-```bash
 [https://meta-hive-frontend.vercel.app/](https://meta-hive-frontend.vercel.app/)
-```
 
 
 
