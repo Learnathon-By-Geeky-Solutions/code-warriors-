@@ -1,0 +1,104 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+
+:root {
+  --foreground-rgb: 31, 41, 55;
+  /* Default light theme values */
+  --bg-start: #ffffff;
+  --bg-end: #f3f4f6;
+
+  /* PDF viewer specific variables */
+  --pdf-border-color: #e5e7eb;
+  --pdf-background: #ffffff;
+  --pdf-toolbar-bg: #f9fafb;
+}
+
+/* Dark theme values */
+[data-theme="dark"] {
+  --foreground-rgb: 249, 250, 251;
+  --bg-start: #1f2937;
+  --bg-end: #111827;
+
+  /* PDF viewer dark theme */
+  --pdf-border-color: #374151;
+  --pdf-background: #1f2937;
+  --pdf-toolbar-bg: #111827;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+}
+
+.theme-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, var(--bg-start), var(--bg-end));
+  transition: background 0.3s ease;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* PDF Viewer styles */
+.pdf-viewer {
+  @apply w-full max-w-6xl mx-auto rounded-lg overflow-hidden;
+  background-color: var(--pdf-background);
+  border: 1px solid var(--pdf-border-color);
+}
+
+.pdf-controls {
+  @apply p-4 border-b border-solid;
+  border-color: var(--pdf-border-color);
+  background-color: var(--pdf-toolbar-bg);
+}
+
+.rpv-core__viewer {
+  @apply w-full h-full;
+}
+
+.rpv-core__page-layer {
+  background-color: transparent !important;
+}
+
+/* PDF viewer toolbar customization */
+.rpv-core__toolbar {
+  @apply border-b border-solid;
+  border-color: var(--pdf-border-color) !important;
+  background-color: var(--pdf-toolbar-bg) !important;
+}
+
+.rpv-core__button {
+  @apply text-current !important;
+}
+
+.rpv-core__button:hover {
+  @apply bg-opacity-10 bg-current !important;
+}
+
+.rpv-core__button--selected {
+  @apply bg-opacity-20 bg-current !important;
+}
+
+/* PDF viewer page customization */
+.rpv-core__page-container {
+  @apply bg-transparent !important;
+}
+
+.rpv-core__spinner {
+  @apply text-current !important;
+}
+

@@ -1,0 +1,281 @@
+/* src/app/office/[id]/DynamicOffice.module.css */
+
+
+
+.gameContainer {
+  left: 0rem !important;
+  top: 0px !important;
+  position: fixed !important; /* Ensure it's positioned relative to the viewport */
+  height: 100vh; /* Full height of the viewport */
+  width: 100vw; /* Full width of the viewport */
+  margin: 0; /* Ensure no margin around the game container */
+  padding: 0; /* Ensure no padding inside the container */
+  position: relative; /* Relative positioning for internal elements */
+  display: flex; /* Center children if needed */
+  justify-content: center;
+  align-items: center;
+}
+
+.gameCanvas {
+  left: 0rem !important;
+  height: 100%; /* Full height of its parent */
+  width: 100%; /* Full width of its parent */
+  display: block; /* Ensure the canvas behaves as a block-level element */
+}
+
+.container {
+
+
+  left:0rem !important;
+  right: 0rem;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  display: flex;
+  margin-top: 1rem;
+}
+
+/* ---------------- SIDEBARS ---------------- */
+
+.sidebar {
+  width: 300px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease;
+  position: fixed;
+  top: 70px; /* Adjust for your header's height */
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  z-index: 1000;
+  background-color: #ffffff; /* White background */
+  color: #333; /* Dark text */
+}
+
+.leftSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.rightSidebar {
+  left: 0;
+  transform: translateX(-95%);
+  transition: transform 0.5s ease;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #ddd; /* Subtle separator */
+  padding-bottom: 0.5rem;
+}
+
+.sidebarTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0070f3; /* Accent color for titles */
+}
+
+.minimizeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* Sidebar toggle buttons on each edge */
+.sidebarToggle {
+  position: fixed;
+  /* position below your header */
+  padding: 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.leftToggle {
+  top: 120px;
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+  transition: transform 0.5s ease;
+}
+
+.leftToggleTransform {
+  top: 120px;
+  left: 0.1rem;
+  transform: translateX(18rem);
+  transition: transform 0.5s ease;
+}
+
+.rightToggle {
+  top: 220px;
+  left: 0.1rem;
+  transform: translateX(0.1rem);
+  transition: transform 0.5s ease;
+}
+
+.rightToggleTransform {
+  top: 220px;
+  left: 0.1rem;
+  transform: translateX(18rem);
+  transition: transform 0.5s ease;
+}
+
+.sidebarToggle:hover {
+  opacity: 0.8;
+}
+
+/* ---------------- MAIN CONTENT ---------------- */
+
+.mainContent {
+  /* Center the main content at 80% width */
+  left: 0rem;
+  /* margin: 0 0; */
+  width: 100%;
+  /* padding: 0 1rem; */
+  flex-grow: 1;
+  position: relative;
+  z-index: 1; /* ensure it’s above any background but below sidebars */
+}
+
+/* Inside the .gameContainer, we place the Kaboom canvas plus chat overlay */
+.gameCanvasContainer {
+  height: 100%; /* Full height of its parent */
+  width: 100%; /* Full width of its parent */
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative;
+}
+
+/* Absolutely position the chatbox over the bottom-right of the game area */
+.chatBoxContainer {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1001;
+  width: 300px; /* Adjust as needed */
+}
+
+/* --------------- TEAM LIST & CARDS --------------- */
+
+.teamList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.teamCard {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  background-color: #f0f0f0; /* Light gray background */
+  color: #333; /* Dark text */
+}
+
+.teamCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.plusCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  cursor: pointer;
+  background-color: #e0e0e0; /* Slightly darker for differentiation */
+  color: #0070f3; /* Accent color for the plus sign */
+}
+
+.plusCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --------------- TEXT STYLES --------------- */
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.location {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.description {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.contact {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* --------------- ADD MEMBER BUTTON --------------- */
+
+.addButton {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: #0070f3;
+  color: #fff;
+  width: 100%; /* Full width for better visibility */
+  text-align: center;
+}
+
+.addButton:hover {
+  background-color: #005bb5; /* Darker shade on hover */
+  transform: translateY(-2px);
+}
+
+/* --------------- RESPONSIVE --------------- */
+
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+  .mainContent {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 0.5rem;
+  }
+}
