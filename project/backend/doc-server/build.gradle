@@ -51,7 +51,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
-
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     testImplementation 'com.h2database:h2'

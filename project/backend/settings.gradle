@@ -1,6 +1,19 @@
-rootProject.name = 'meta-backend'
 
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    plugins {
+        // Define versions for plugins applied by ID in subproject build.gradle files
+        // Use the versions you intend for your project
+        id 'org.springframework.boot' version '3.4.1'
+        id 'io.spring.dependency-management' version '1.1.7'
+        // Add other plugins used without versions in subprojects if any
+    }
+}
 // Ignore non-Gradle folders
+rootProject.name = 'meta-backend'
 def gradleProjects = ['api-gateway', 'doc-server', 'office-service', 'project-manager', 'user-service']
 
 rootDir.eachDir { dir ->
